@@ -6,14 +6,14 @@
  * Time: 13:50
  */
 
-namespace App\Api\Search;
+namespace BoneCrusher\Api\Search;
 
 use GrizzlyViking\QueryBuilder\Branches\Factories\Aggregations;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\MultiMatch;
 use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
-use App\Http\Requests\SearchTerms;
+use BoneCrusher\Http\Requests\SearchTerms;
 use Illuminate\Support\Collection;
 
 class Book implements SearchInterface
