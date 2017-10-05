@@ -24,4 +24,6 @@ Route::middleware('auth:api')->group(function() {
         $request->validate();
         return $request->validated();
     });
-});
+
+    Route::post('books', '');
+});s
