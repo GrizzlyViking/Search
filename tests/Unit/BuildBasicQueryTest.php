@@ -31,8 +31,9 @@ class BuildBasicQueryTest extends TestCase
 
         $search = new Book(new QueryBuilder(), $parameters);
 
-        dd($search);
+        $response = $search->search();
+        dd($response->toJson());
 
-        $this->assertTrue(true);
+        $this->assertTrue(!empty($search));
     }
 }
