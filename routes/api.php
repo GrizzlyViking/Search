@@ -25,5 +25,5 @@ Route::middleware('auth:api')->group(function() {
         return $request->validated();
     });
 
-    Route::post('books', '');
-});s
+    Route::post('books', 'SearchController@index');
+});
