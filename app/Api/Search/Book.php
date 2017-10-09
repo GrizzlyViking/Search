@@ -37,7 +37,19 @@ class Book implements SearchInterface
         return $this->builder->getQuery();
     }
 
-    public function buildSearch(SearchTerms $terms)
+    /**
+     * @return Collection
+     */
+    public function getQuery(): Collection
+    {
+        return $this->builder->getQuery();
+    }
+
+    /**
+     * @param SearchTerms $terms
+     * @return $this
+     */
+    public function buildSearch(SearchTerms $terms): Book
     {
         $this->terms = collect($terms->all());
 
@@ -70,6 +82,8 @@ class Book implements SearchInterface
                     break;
             }
         });
+
+        return $this;
     }
 
     public function getResults()

@@ -15,7 +15,7 @@ class BuildBasicQueryTest extends TestCase
      *
      * @return void
      */
-    public function testExample()
+    public function testItBuilds()
     {
         $parameters = $this->app->make(SearchTerms::class);
 
@@ -30,8 +30,6 @@ class BuildBasicQueryTest extends TestCase
         $parameters->validate();
 
         $search = new Book(new QueryBuilder(), $parameters);
-
-        $response = $search->search();
 
         $this->assertTrue(!empty($search));
     }
