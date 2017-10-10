@@ -16,3 +16,14 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::middleware('auth:api')->group(function() {
+    Route::post('test', function(\BoneCrusher\Http\Requests\SearchTerms $request) {
+
+        $request->validate();
+        return $request->validated();
+    });
+
+    Route::post('books', 'SearchController@index');
+});
