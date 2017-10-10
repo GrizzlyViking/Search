@@ -9,6 +9,6 @@ class SearchController extends Controller
 {
     public function index(Book $book)
     {
-        return $book->search();
+        return $book->withFacets()->search();
     }
 }

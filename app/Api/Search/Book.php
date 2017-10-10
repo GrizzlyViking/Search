@@ -8,7 +8,8 @@
 
 namespace BoneCrusher\Api\Search;
 
-use GrizzlyViking\QueryBuilder\Branches\Factories\Aggregations;
+use BoneCrusher\Api\Search\Defaults\Aggregations as DefaultFacets;
+use GrizzlyViking\QueryBuilder\Branches\Aggregations;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\MultiMatch;
 use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
@@ -30,7 +31,7 @@ class Book implements SearchInterface
     }
 
     /**
-     * @return array
+     * @return Collection
      */
     public function search()
     {
@@ -51,7 +52,7 @@ class Book implements SearchInterface
      */
     public function buildSearch(SearchTerms $terms): Book
     {
-        $this->terms = collect($terms->all());
+        $this->terms = collect($terms->validated());
 
         $this->terms->only(config('search.term'))->each(function($term) {
             $multiMatch = MultiMatch::create($term);
@@ -72,11 +73,16 @@ class Book implements SearchInterface
                     break;
                 case config('search.pagination.pageKey'):
                     $from = 0;
-                    $size = config('search.pagination.resultsPerPageDefault');
-                    if ($this->terms->has(config('search.pagination.resultsPerPageKey'))) {
+
+                    if ( ! $size = $this->terms->get(config('search.pagination.resultsPerPageKey'))) {
+
+                        $size = config('search.pagination.resultsPerPageDefault');
+                    }
+
+                    if ($this->terms->has(config('search.pagination.pageKey'))) {
                         // x = page 3 * 30 results per page 90
 
-                        $from = ($this->terms->get(config('search.pagination.resultsPerPageKey'))) * ($option - 1);
+                        $from = ($this->terms->get(config('search.pagination.resultsPerPageKey'))) * ($this->terms->get(config('search.pagination.pageKey')) - 1);
                     }
                     $this->builder->setSize($size, $from);
                     break;
@@ -86,12 +92,26 @@ class Book implements SearchInterface
         return $this;
     }
 
+    /**
+     * @return $this
+     */
+    public function withFacets()
+    {
+        $this->setAggregates(DefaultFacets::get());
+
+        return $this;
+    }
+
     public function getResults()
     {
         return $this->builder->debug();
     }
 
-    public function setAggregates(\GrizzlyViking\QueryBuilder\Branches\Aggregations $aggregations)
+    /**
+     * @param Aggregations $aggregations
+     * @return $this
+     */
+    public function setAggregates(Aggregations $aggregations)
     {
         $this->builder->setAggregates($aggregations);
 

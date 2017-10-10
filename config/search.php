@@ -25,9 +25,7 @@
         |
         */
         'multiMatch' => [
-            'type' => [
-                'best_fields'
-            ],
+            'type' => 'best_fields',
             'fields' => [
                 'title.english_standard',
                 'subtitle.english_standard',
@@ -38,10 +36,32 @@
             ]
         ],
 
-        'orderBy' => 'salesWeight',
+        'orderBy' => 'orderBy',
         'pagination' => [
-            'resultsPerPageKey' => 20,
+            'resultsPerPageKey' => 'resultsPerPage',
             'pageKey' => 'page',
             'resultsPerPageDefault' => 20
-        ]
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Post Filters
+        |--------------------------------------------------------------------------
+        |
+        | These are the filters that are applied after the query has run. The significance
+        | is that they can then be used to be applied selectively to aggregations.
+        | ie, the filter does not apply to an aggregation on itself.
+        |
+        */
+        'filters' => [
+            'publisher',
+            'series',
+            'languages',
+            'contributors',
+            'interestAge',
+            'tagIds',
+            'rating',
+            'formats',
+            'websiteCategoryCodes'
+        ],
     ];
