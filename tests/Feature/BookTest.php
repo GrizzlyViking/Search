@@ -12,7 +12,7 @@ class BookTest extends TestCase
     /**
      * @test
      */
-    public function build_the_query_correctly()
+    public function build_the_search_query_branch()
     {
         $bookSearch = $this->bookSearch([
             'term'       => 'fire publisher:someone author:"J K Rawlings"',
