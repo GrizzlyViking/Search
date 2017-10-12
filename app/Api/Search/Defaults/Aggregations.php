@@ -6,7 +6,7 @@
  * Time: 17:17
  */
 
-namespace BoneCrusher\Api\Search\Defaults;
+namespace App\Api\Search\Defaults;
 
 
 use Illuminate\Support\Collection;

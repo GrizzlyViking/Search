@@ -6,7 +6,7 @@
  * Time: 15:20
  */
 
-namespace BoneCrusher\Api\Search;
+namespace App\Api\Search;
 
 
 interface SearchInterface

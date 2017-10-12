@@ -1,12 +1,12 @@
 <?php
 
-namespace BoneCrusher\Providers;
+namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider,
     App\Api\Search\Book as BookSearch,
     GrizzlyViking\QueryBuilder\QueryBuilder,
     Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider,
-    BoneCrusher\Http\Requests\SearchTerms,
+    App\Http\Requests\SearchTerms,
     App\Api\Search\Defaults\Aggregations as DefaultFacades;
 
 class AppServiceProvider extends ServiceProvider

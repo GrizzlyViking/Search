@@ -1,10 +1,10 @@
 <?php
 
-namespace BoneCrusher\Http\Requests;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule,
-    BoneCrusher\Rules\Utf8;
+    App\Rules\Utf8;
 
 class SearchTerms extends FormRequest
 {

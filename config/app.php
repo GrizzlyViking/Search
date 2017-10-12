@@ -171,11 +171,11 @@ return [
         /*
          * Application Service Providers...
          */
-        BoneCrusher\Providers\AppServiceProvider::class,
-        BoneCrusher\Providers\AuthServiceProvider::class,
-        // BoneCrusher\Providers\BroadcastServiceProvider::class,
-        BoneCrusher\Providers\EventServiceProvider::class,
-        BoneCrusher\Providers\RouteServiceProvider::class,
+        App\Providers\AppServiceProvider::class,
+        App\Providers\AuthServiceProvider::class,
+        // App\Providers\BroadcastServiceProvider::class,
+        App\Providers\EventServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,
 
     ],
 
