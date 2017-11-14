@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use BoneCrusher\Api\Search\Book;
-use BoneCrusher\Http\Requests\SearchTerms;
+use App\Api\Search\Book;
+use App\Http\Requests\SearchTerms;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Tests\TestCase;
 
@@ -12,7 +12,7 @@ class BookTest extends TestCase
     /**
      * @test
      */
-    public function build_the_query_correctly()
+    public function build_the_search_query_branch()
     {
         $bookSearch = $this->bookSearch([
             'term'       => 'fire publisher:someone author:"J K Rawlings"',
@@ -23,11 +23,11 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $multi_match = collect(array_pluck(array_get($bookSearch->getQuery()->toArray(), 'query.must'), 'multi_match'));
+        $multi_match = collect(array_get($bookSearch->getQuery()->toArray(), 'query.multi_match'));
 
-        $this->assertTrue($multi_match->contains('query', 'fire'), 'Multi match should have contained query => fire, but did not.');
-        $this->assertTrue($multi_match->contains('type', config('search.multiMatch.type')), 'Multi match should have contained type => '.config('search.multiMatch.type').', but did not.');
-        $this->assertEquals(config('search.multiMatch.fields'), $multi_match->first()['fields']);
+        $this->assertEquals('fire', $multi_match->get('query'), 'Multi match should have contained query => fire, but did not.');
+        $this->assertEquals( config('search.multiMatch.type'), $multi_match->get('type'), 'Multi match should have contained type => '.config('search.multiMatch.type').', but did not.');
+        $this->assertEquals(config('search.multiMatch.fields'), $multi_match->get('fields'));
     }
 
     /** @test */
@@ -84,8 +84,6 @@ class BookTest extends TestCase
             'redirect_uri' => 'http://api.search.seb/callback',
             'match'      => 'author'
         ])->withFacets();
-
-        dd($booksearch->getQuery()->toArray());
     }
 
     public function bookSearch($parameters)

@@ -1,8 +1,8 @@
 <?php
 
-namespace BoneCrusher\Http\Controllers;
+namespace App\Http\Controllers;
 
-use BoneCrusher\Api\Search\Book;
+use App\Api\Search\Book;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller

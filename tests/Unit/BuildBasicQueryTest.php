@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use BoneCrusher\Api\Search\Book;
-use BoneCrusher\Http\Requests\SearchTerms;
+use App\Api\Search\Book;
+use App\Http\Requests\SearchTerms;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;

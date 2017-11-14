@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use BoneCrusher\Http\Requests\SearchTerms;
+use App\Http\Requests\SearchTerms;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

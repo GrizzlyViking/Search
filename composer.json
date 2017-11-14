@@ -29,7 +29,7 @@
       "database/factories"
     ],
     "psr-4": {
-      "BoneCrusher\\": "app/",
+      "App\\": "app/",
       "GrizzlyViking\\QueryBuilder\\": "workbench/grizzly-viking/query-builder/src/"
     }
   },

@@ -19,7 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 
 Route::middleware('auth:api')->group(function() {
-    Route::post('test', function(\BoneCrusher\Http\Requests\SearchTerms $request) {
+    Route::post('test', function(\App\Http\Requests\SearchTerms $request) {
 
         $request->validate();
         return $request->validated();
