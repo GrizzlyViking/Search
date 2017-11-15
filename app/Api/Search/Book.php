@@ -13,6 +13,7 @@ use GrizzlyViking\QueryBuilder\Branches\Aggregations;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\MultiMatch;
 use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
+use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use App\Http\Requests\SearchTerms;
 use Illuminate\Support\Collection;
@@ -46,6 +47,50 @@ class Book implements SearchInterface
         return $this->builder->getQuery();
     }
 
+    private function buildQuery($term)
+    {
+        $config = config('search.query');
+
+        // interrogate config
+        if (array_has($config, 'bool')) {
+            if (count(array_get($config, 'bool')) > 1) {
+                $booleans = array_get($config, 'bool');
+                $queryBranch = new \GrizzlyViking\QueryBuilder\Branches\Queries();
+
+                collect($booleans)->each(function($nodes, $boolean) use ($term, $queryBranch) {
+
+                    foreach ($nodes as $node) {
+                        if (array_has($node, 'multi_match')) {
+                            $multiMatch = MultiMatch::create($term);
+                            $multiMatch->setBoolean($boolean);
+                            $multiConfig = array_get($node, 'multi_match');
+
+                            if ($type = array_get($multiConfig, 'type', false)) {
+                                $multiMatch->setMultiMatchType($type);
+                            }
+
+                            if ($operator = array_get($multiConfig, 'operator', false)) {
+                                $multiMatch->setOperator($operator);
+                            }
+
+                            if ($analyzer = array_get($multiConfig, 'analyzer', false)) {
+                                $multiMatch->setAnalyzer($analyzer);
+                            }
+
+                            if ($fields = array_get($multiConfig, 'fields', false)) {
+                                $multiMatch->setFields($fields);
+                            }
+
+                            $queryBranch->add($multiMatch);
+                        }
+                    }
+                });
+
+                $this->builder->setQueries($queryBranch);
+            }
+        }
+    }
+
     /**
      * @param SearchTerms $terms
      * @return $this
@@ -54,12 +99,8 @@ class Book implements SearchInterface
     {
         $this->terms = collect($terms->validated());
 
-        $this->terms->only(config('search.term'))->each(function($term) {
-            $multiMatch = MultiMatch::create($term);
-            $multiMatch->setMultiMatchType(config('search.multiMatch.type'));
-            $multiMatch->setFields(config('search.multiMatch.fields'));
-
-            $this->builder->setQueries(Queries::create($multiMatch));
+        $this->terms->only(config('search.term'))->each(function ($term) {
+            $this->buildQuery($term);
         });
 
         $this->terms->only(config('search.filters'))->each(function($filter, $key){
@@ -88,6 +129,10 @@ class Book implements SearchInterface
                     break;
             }
         });
+
+        if (array_has(config('search'), 'script')) {
+            $this->builder->setScript(config('search.script'));
+        }
 
         return $this;
     }

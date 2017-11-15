@@ -18,25 +18,78 @@
 
         /*
         |--------------------------------------------------------------------------
-        | Multi Match
+        | Query
         |--------------------------------------------------------------------------
         |
-        | configure how the multimatch field is configured.
+        | configure how the Query branch is configured.
         |
         */
-        'multiMatch' => [
-            'type' => 'best_fields',
-            'fields' => [
-                'title.english_standard',
-                'subtitle.english_standard',
-                'headline',
-                'contributors',
-                'series',
-                'publisher'
+        "query" => [
+            "bool" => [
+                "must"     => [
+                    [
+                        "multi_match" => [
+                            "type"     => "cross_fields",
+                            "operator" => "and",
+                            "analyzer" => "english_std_analyzer",
+                            "fields"   => [
+                                "boostedFullText.english_no_tf^7",
+                                "fullText.english_no_tf^2"
+                            ]
+                        ]
+                    ]
+                ],
+                "should"   => [
+                    [
+                        "multi_match" => [
+                            "fields"   => [
+                                "boostedFullText.unstemmed_no_tf^7",
+                                "fullText.unstemmed_no_tf^2"
+                            ],
+                            "operator" => "OR",
+                            "type"     => "cross_fields",
+                            "analyzer" => "unstemmed"
+                        ]
+                    ],
+                    [
+                        "multi_match" => [
+                            "fields"   => [
+                                "boostedFullText.english^7",
+                                "fullText.english^2"
+                            ],
+                            "operator" => "OR",
+                            "type"     => "phrase",
+                            "analyzer" => "english_std_analyzer"
+                        ]
+                    ]
+                ]
             ]
         ],
 
+        "script" => "(1 + Math.pow(_score, 0.5) * doc['scores.inStock'].value" .
+            " * (" .
+                "0.25 * doc['scores.sales30ALL'].value + " .
+                "0.1 * doc['scores.sales90ALL'].value + " .
+                "0.005 * doc['scores.sales180ALL'].value + " .
+                "0.05 * doc['scores.leadTime'].value + " .
+                "0.15 * doc['scores.readyToGo'].value + " .
+                "0.01 * doc['scores.hasJacket'].value + " .
+                "0.01 * doc['scores.hasGallery'].value" .
+            "))",
+
+        "score_mode" => "first",
+        "boost_mode" => "replace",
+
+        /*
+        |--------------------------------------------------------------------------
+        | Pagination
+        |--------------------------------------------------------------------------
+        |
+        | Sort and Pagination keys. This is translating from request variables to ElasticSearch equivalents
+        |
+        */
         'orderBy' => 'orderBy',
+
         'pagination' => [
             'resultsPerPageKey' => 'resultsPerPage',
             'pageKey' => 'page',

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Api\Search\Book;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider,
     App\Api\Search\Book as BookSearch,
     GrizzlyViking\QueryBuilder\QueryBuilder,
