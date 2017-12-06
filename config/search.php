@@ -117,4 +117,18 @@
             'formats',
             'websiteCategoryCodes'
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | ElasticSearch Client
+        |--------------------------------------------------------------------------
+        |
+        | The client itself gets the index setting from config/elasticsearch, which in
+        | turn gets the settings from the .env file.
+        |
+        */
+        'index' => [
+            'index' => env('ELASTICSEARCH_INDEX','books'),
+            'type' => env('ELASTICSEARCH_TYPE', 'book')
+        ],
     ];

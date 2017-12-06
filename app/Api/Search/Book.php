@@ -17,6 +17,27 @@ use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use App\Http\Requests\SearchTerms;
 use Illuminate\Support\Collection;
+use GrizzlyViking\QueryBuilder\Response;
+
+/*
+|--------------------------------------------------------------------------
+| Book Search
+|--------------------------------------------------------------------------
+|
+| Just wanted to explain why I have made certain design decisions for the new iteration
+| of Books Search. In no order that makes any sense;
+| Aside from wanting to separate search out into its own API, I also wanted to get rid of
+| renderer, and revert that job back to the books search, because jumping back and forth
+| between then created too much confusion. Additionally the parameter validator/sanitiser
+| has a much reduced remit. i.e. it 'just' validates the input, and sanitises a few things
+| and it crucially no longer allocates elements to filters etc.
+|
+| The builder is separated to the extent, it is an composer importable package. The idea being that
+| it could be used by other APIs without necessarily having a book focus... and what follows is that
+| great care has been taken to make it as agnostic as possible. What I also wanted was that
+| its the Elastic Search Builder that has the ability to make the actual search.
+|
+*/
 
 class Book implements SearchInterface
 {
@@ -24,6 +45,14 @@ class Book implements SearchInterface
     protected $builder;
     /** @var SearchTerms */
     protected $terms;
+    protected $index = 'books_3';
+    protected $type = 'book';
+    /** @var Collection */
+    protected $books;
+    /** @var Collection */
+    protected $resultMetaData;
+    /** @var Response */
+    protected $searchResults;
 
     public function __construct(QueryBuilder $queryBuilder, SearchTerms $terms)
     {
@@ -32,11 +61,13 @@ class Book implements SearchInterface
     }
 
     /**
-     * @return Collection
+     * @return Response
      */
-    public function search()
+    public function search(): Response
     {
-        return $this->builder->getQuery();
+        $this->searchResults = $this->builder->search();
+
+        return $this->searchResults;
     }
 
     /**
@@ -153,13 +184,42 @@ class Book implements SearchInterface
     }
 
     /**
+     * Before Search! This is the aggregates building the query.
+     *
      * @param Aggregations $aggregations
      * @return $this
      */
-    public function setAggregates(Aggregations $aggregations)
+    public function setAggregates(Aggregations $aggregations): Book
     {
         $this->builder->setAggregates($aggregations);
 
         return $this;
+    }
+
+    /**
+     * After Search! This is formatting the aggregates of the response
+     *
+     * @param string $aggregationKey
+     * @param \Closure $callback
+     */
+    public function formatAggregations($aggregationKey, $callback)
+    {
+        if ( ! is_callable($callback)) {
+            $callback = $this->defaultAggregationCallback();
+        }
+
+        if ($aggregation = $this->searchResults->getAggregations()->get($aggregationKey, false)) {
+            $this->searchResults->setAggregation($aggregationKey, $callback($aggregation));
+        }
+    }
+
+    /**
+     * @return \Closure
+     */
+    private function defaultAggregationCallback()
+    {
+        return function($aggregation) {
+            return $aggregation;
+        };
     }
 }
