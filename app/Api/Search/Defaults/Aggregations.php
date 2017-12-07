@@ -19,7 +19,7 @@ class Aggregations
                 [
                     'title' => 'Express Delivery',
                     'field' => 'leadTime',
-                    'callback' => function($value, $filters = null, $queriedAggregation = null) {
+                    'callback' => function($aggregationKey, $aggregations) {
 
                         $countryCode = 'GB';
 
@@ -50,7 +50,7 @@ class Aggregations
                 [
                     'title' => 'Age Group',
                     'field' => 'interestAge',
-                    'order' => ['interestAge' => 'asc'],
+                    //'order' => ['interestAge' => 'asc'],
                     'ranges' => [
                         ['key' => 'Babies', 'to' => 2],
                         ['key' => 'Toddlers', 'from' => 1, 'to' => 3],
@@ -63,7 +63,7 @@ class Aggregations
                 [
                     'title' => 'Publication Date',
                     'field' => 'publicationDate',
-                    'order' => ['publicationDate' => 'desc'],
+                    //'order' => ['publicationDate' => 'desc'],
                     'ranges' => [
                         ['key' => 'Coming soon', 'from' => date('Y-m-d'), 'to' => date('Y-m-d', strtotime('+3 month'))],
                         ['key' => 'Within the last month', 'to' => date('Y-m-d'), 'from' => date('Y-m-d', strtotime('-1 month'))],

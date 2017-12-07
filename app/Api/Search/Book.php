@@ -67,6 +67,10 @@ class Book implements SearchInterface
     {
         $this->searchResults = $this->builder->search();
 
+        $this->applyCallbacksToAggregates();
+
+        dd($this->builder->getAggregates());
+
         return $this->searchResults;
     }
 
@@ -200,16 +204,18 @@ class Book implements SearchInterface
      * After Search! This is formatting the aggregates of the response
      *
      * @param string $aggregationKey
-     * @param \Closure $callback
+     * @param \Closure|null $callback
      */
-    public function formatAggregations($aggregationKey, $callback)
+    public function formatAggregation($aggregationKey, $callback = null)
     {
-        if ( ! is_callable($callback)) {
-            $callback = $this->defaultAggregationCallback();
-        }
-
         if ($aggregation = $this->searchResults->getAggregations()->get($aggregationKey, false)) {
-            $this->searchResults->setAggregation($aggregationKey, $callback($aggregation));
+            $this->searchResults->setAggregation(
+                $aggregationKey,
+                $callback($aggregationKey, $aggregation)
+            );
+        }
+        if (is_callable($callback)) {
+            $callback = $this->defaultAggregationCallback();
         }
     }
 
@@ -218,8 +224,38 @@ class Book implements SearchInterface
      */
     private function defaultAggregationCallback()
     {
-        return function($aggregation) {
-            return $aggregation;
+        return function($aggregationKey, $aggregation) {
+
+            /** @var \GrizzlyViking\QueryBuilder\Leaf\Aggregation $leaf */
+            $leaf = $this->builder->getAggregates()->getLeaf($aggregationKey);
+            $filters = $this->terms->only(config('search.filters'));
+            $options = $aggregation;
+
+            if ($buckets = array_get($aggregation, 'buckets', false)) {
+                $options = collect($buckets)->flatMap(function($bucket, $key) {
+                    return [
+                        array_get($bucket, 'key', $key) => array_get($bucket, 'doc_count', $key)
+                    ];
+                });
+            }
+
+            return [
+                'title' => ucwords($leaf->getTitle()),
+                'name' => 'filter['.$leaf->getField().']',
+                'anyLabel' => 'Any '.$leaf->getField(),
+                'currentValue' => $filters->toArray(),
+                'options' => $options->toArray()
+            ];
         };
+    }
+
+    private function applyCallbacksToAggregates()
+    {
+        $this->builder->getAggregates()->getLeaves()->each(function($aggregation) { /** @var \GrizzlyViking\QueryBuilder\Leaf\Aggregation $aggregation */
+            $this->formatAggregation(
+                $aggregation->getTitle(),
+                $aggregation->getCallback()
+            );
+        });
     }
 }

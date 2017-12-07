@@ -56,8 +56,8 @@ class BuildBasicQueryTest extends TestCase
 
         $search = new Book(new QueryBuilder(), $this->mockRequest);
 
-        $query = $search->withFacets()->search()->all();
+        $query = $search->withFacets()->search();
 
-        dd($query);
+        dd($query->getAggregations());
     }
 }
