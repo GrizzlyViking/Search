@@ -69,8 +69,6 @@ class Book implements SearchInterface
 
         $this->applyCallbacksToAggregates();
 
-        dd($this->builder->getAggregates());
-
         return $this->searchResults;
     }
 
@@ -165,6 +163,18 @@ class Book implements SearchInterface
             }
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Pagination
+        |--------------------------------------------------------------------------
+        |
+        | If pagination has not been set by the request, then it is populated by the config.
+        |
+        */
+        if ($this->builder->getPagination()->isEmpty()) {
+          $this->builder->setSize(config('search.pagination.resultsPerPageDefault'), 0);
+        }
+
         if (array_has(config('search'), 'script')) {
             $this->builder->setScript(config('search.script'));
         }
@@ -208,14 +218,15 @@ class Book implements SearchInterface
      */
     public function formatAggregation($aggregationKey, $callback = null)
     {
+        if (!is_callable($callback)) {
+            $callback = $this->defaultAggregationCallback();
+        }
+
         if ($aggregation = $this->searchResults->getAggregations()->get($aggregationKey, false)) {
             $this->searchResults->setAggregation(
                 $aggregationKey,
                 $callback($aggregationKey, $aggregation)
             );
-        }
-        if (is_callable($callback)) {
-            $callback = $this->defaultAggregationCallback();
         }
     }
 
