@@ -9,6 +9,7 @@
 namespace App\Api\Search\Defaults;
 
 
+use App\Http\Requests\SearchTerms;
 use Illuminate\Support\Collection;
 
 class Aggregations
@@ -19,26 +20,24 @@ class Aggregations
                 [
                     'title' => 'Express Delivery',
                     'field' => 'leadTime',
-                    'callback' => function($value, $filters = null, $queriedAggregation = null) {
+                    'callback' => function($aggregationKey, $aggregations) {
 
-                        $countryCode = 'GB';
+                        $bucket = collect(array_get($aggregations, 'buckets'))->first(function($bucket) {
+                            return array_get($bucket, 'key', false) == 0;
+                        });
 
-                        $options = collect($value[$queriedAggregation['title']]['buckets'])->filter(function ($option) {
-                            return $option['key'] == 0;
-                        })->map(function ($option) use ($queriedAggregation, $countryCode) {
-                            $option['label'] = $countryCode == 'GB' ? ($queriedAggregation['title']) : 'Ready To Go';
-                            $option['value'] = 'express';
-                            $option['count'] = $option['doc_count'];
-
-                            return [$option];
-                        })->first();
+                        $count = array_get($bucket, 'doc_count', 0);
 
                         return [
                             'name' => 'leadTime[]',
                             'vanityLabels' => 'highlight',
                             'hideAll' => true,
-                            'values' => isset($filters['leadTime']) && $filters['leadTime'] == 0 ? ['express'] : [],
-                            'options' => $options ?: [],
+                            'values' =>  $count ? ['express'] : [],
+                            'options' => [
+                                'label' => 'GB',
+                                'value' => 'express',
+                                'count' => array_get($bucket, 'doc_count')
+                            ],
                             'type' => 'check'
                         ];
                     }
@@ -50,7 +49,7 @@ class Aggregations
                 [
                     'title' => 'Age Group',
                     'field' => 'interestAge',
-                    'order' => ['interestAge' => 'asc'],
+                    //'order' => ['interestAge' => 'asc'],
                     'ranges' => [
                         ['key' => 'Babies', 'to' => 2],
                         ['key' => 'Toddlers', 'from' => 1, 'to' => 3],
@@ -63,7 +62,7 @@ class Aggregations
                 [
                     'title' => 'Publication Date',
                     'field' => 'publicationDate',
-                    'order' => ['publicationDate' => 'desc'],
+                    //'order' => ['publicationDate' => 'desc'],
                     'ranges' => [
                         ['key' => 'Coming soon', 'from' => date('Y-m-d'), 'to' => date('Y-m-d', strtotime('+3 month'))],
                         ['key' => 'Within the last month', 'to' => date('Y-m-d'), 'from' => date('Y-m-d', strtotime('-1 month'))],
@@ -71,42 +70,24 @@ class Aggregations
                         ['key' => 'Within the last year', 'to' => date('Y-m-d'), 'from' => date('Y-m-d', strtotime('-1 year'))],
                         ['key' => 'Over a year ago', 'to' => date('Y-m-d', strtotime('-1 year'))]
                     ],
-                    'callback' => function($value, Collection $filters = null, $queriedAggregation = null) {
+                    'callback' => function($aggregationKey, $aggregations) {
+                        $searchTerms = app(SearchTerms::class);
 
-                        if ( ! $value instanceof Collection) {
-                            if (isset($value[$queriedAggregation['title']]['buckets'])) {
-                                $value = collect($value[$queriedAggregation['title']]['buckets']);
-                            } elseif (isset($value['buckets'])) {
-                                $value = collect($value['buckets']);
-                            }
-                        }
+                        $clicked = $searchTerms->get('publicationDate', []);
 
-                        $clicked = $filters->has($queriedAggregation['field']) ? [$filters->get($queriedAggregation['field'])] : [];
-
-                        // in place to catch if buckets are missing.
-                        if ($value->isNotEmpty()) {
-
-                            $options = $value->flatMap(function($option, $key) {
-
-                                return [[
-                                    'label' => $key,
-                                    'value' => $key,
-                                    'count' => $option['doc_count']
-                                ]];
-                            })->filter(function($option) use ($clicked) {
-                                return ($option['count'] > 0 || in_array($option['value'], $clicked));
-                            })->values()->toArray();
-                        } else {
-                            $options = [[
-                                'label' => $clicked,
-                                'value' => $clicked,
-                                'count' => 0
-                            ]];
-                        }
+                        $options = collect(array_get($aggregations, 'buckets'))->map(function($element, $key) {
+                            return [
+                                'label' => $key,
+                                'value' => $key,
+                                'count' => array_get($element, 'doc_count', 0)
+                            ];
+                        })->filter(function($option) use ($clicked) {
+                            return ($option['count'] > 0 || in_array($option['value'], $clicked));
+                        })->values()->toArray();
 
                         return [
-                            'title' => $queriedAggregation['title'],
-                            'name' => $queriedAggregation['field'],
+                            'title' => 'Publication Date',
+                            'name' => 'publicationDate',
                             'vanityLabels' => null,
                             'values' => $clicked,
                             'options' => $options,

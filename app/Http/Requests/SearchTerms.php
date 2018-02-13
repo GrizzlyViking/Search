@@ -27,7 +27,8 @@ class SearchTerms extends FormRequest
         'language'         => 'languages',
         'author'           => 'contributors',
         'contributor'      => 'contributors',
-        'tags'             => 'tagIds'
+        'tags'             => 'tagIds',
+        'geoipCountryCode' => 'country'
     ];
 
     /**
@@ -105,6 +106,7 @@ class SearchTerms extends FormRequest
             'interestAge'     => 'sometimes|required|string',
             'formats'         => 'sometimes|required|string',
             'languages'       => 'sometimes|required|string',
+            'country'         => 'sometimes|required|string',
             'series'          => 'sometimes|required|string',
             self::CATEGORIES  => 'sometimes|required|string',
             'match'           => [
