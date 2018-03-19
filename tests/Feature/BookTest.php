@@ -23,11 +23,13 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $multi_match = collect(array_get($bookSearch->getQuery()->toArray(), 'query.multi_match'));
+        $multi_match = array_first(array_get($bookSearch->getQuery()->get('query'), 'function_score.query.bool.must'));
 
-        $this->assertEquals('fire', $multi_match->get('query'), 'Multi match should have contained query => fire, but did not.');
-        $this->assertEquals( config('search.multiMatch.type'), $multi_match->get('type'), 'Multi match should have contained type => '.config('search.multiMatch.type').', but did not.');
-        $this->assertEquals(config('search.multiMatch.fields'), $multi_match->get('fields'));
+        $config_query_must = config('search.query.bool.must');
+
+        $this->assertEquals('fire', array_get($multi_match, 'multi_match.query'), 'Multi match should have contained query => fire, but did not.');
+        $this->assertEquals( array_get(array_first($config_query_must), 'multi_match.type'), array_get($multi_match, 'multi_match.type'), 'Multi match should have contained type => '.config('search.multiMatch.type').', but did not.');
+        $this->assertEquals(array_get(array_first($config_query_must), 'multi_match.fields'), array_get($multi_match, 'multi_match.fields'));
     }
 
     /** @test */
@@ -42,7 +44,7 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $post_filter = collect($bookSearch->getQuery()->get('post_filter')['must']);
+        $post_filter = collect(array_get($bookSearch->getQuery(), 'post_filter.bool.must'));
 
         $this->assertTrue($post_filter->contains('match', ["formats" => "paperback"]), 'post filters does not contain formats => paperback, and should.');
         $this->assertTrue($post_filter->contains('match_phrase', ["contributors" => "J K Rawlings"]), 'post filters does not contain contributors => J K Rawlings, and should.');
@@ -84,19 +86,5 @@ class BookTest extends TestCase
             'redirect_uri' => 'http://api.search.seb/callback',
             'match'      => 'author'
         ])->withFacets();
-    }
-
-    public function bookSearch($parameters)
-    {
-        $searchTerms = $this->app->make(SearchTerms::class);
-
-        $searchTerms->replace($parameters);
-
-        $searchTerms->validate();
-
-        return new Book(
-            $this->app->make(QueryBuilder::class),
-            $searchTerms
-        );
     }
 }
