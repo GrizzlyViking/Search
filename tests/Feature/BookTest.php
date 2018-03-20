@@ -14,7 +14,9 @@ class BookTest extends TestCase
      */
     public function build_the_search_query_branch()
     {
-        $bookSearch = $this->bookSearch([
+        $parameters = $this->app->make(SearchTerms::class);
+
+        $parameters->replace([
             'term'       => 'fire publisher:someone author:"J K Rawlings"',
             'formats'    => 'paperback',
             'recent'     => true,
@@ -22,6 +24,10 @@ class BookTest extends TestCase
             'redirect_uri' => 'http://api.search.seb/callback',
             'match'      => 'author'
         ]);
+
+        $parameters->validate();
+
+        $bookSearch = new Book(new QueryBuilder(), $parameters);
 
         $multi_match = array_first(array_get($bookSearch->getQuery()->get('query'), 'function_score.query.bool.must'));
 
@@ -35,7 +41,9 @@ class BookTest extends TestCase
     /** @test */
     public function add_post_filters_correctly()
     {
-        $bookSearch = $this->bookSearch([
+        $parameters = $this->app->make(SearchTerms::class);
+
+        $parameters->replace([
             'term'       => 'fire publisher:someone author:"J K Rawlings"',
             'formats'    => 'paperback',
             'recent'     => true,
@@ -43,6 +51,10 @@ class BookTest extends TestCase
             'redirect_uri' => 'http://api.search.seb/callback',
             'match'      => 'author'
         ]);
+
+        $parameters->validate();
+
+        $bookSearch = new Book(new QueryBuilder(), $parameters);
 
         $post_filter = collect(array_get($bookSearch->getQuery(), 'post_filter.bool.must'));
 
@@ -58,14 +70,19 @@ class BookTest extends TestCase
     /** @test */
     public function apply_pagination_to_search()
     {
+        $parameters = $this->app->make(SearchTerms::class);
+
         $pages = 3;
         $resultsPerPage = 30;
-
-        $bookSearch = $this->bookSearch([
+        $parameters->replace([
             config('search.orderBy')   => 'SalesWeights',
             config('search.pagination.pageKey')    => $pages,
             config('search.pagination.resultsPerPageKey') => $resultsPerPage
         ]);
+
+        $parameters->validate();
+
+        $bookSearch = new Book(new QueryBuilder(), $parameters);
 
         $pagination = collect($bookSearch->getQuery()->toArray());
 
@@ -78,13 +95,33 @@ class BookTest extends TestCase
     /** @test */
     public function use_facets_in_query()
     {
-        $booksearch = $this->bookSearch([
+        $parameters = $this->app->make(SearchTerms::class);
+
+        $parameters->replace([
             'term'       => 'fire publisher:someone author:"J K Rawlings"',
             'formats'    => 'paperback',
             'recent'     => true,
             'categories' => 'Y',
             'redirect_uri' => 'http://api.search.seb/callback',
             'match'      => 'author'
-        ])->withFacets();
+        ]);
+
+        $parameters->validate();
+
+        $bookSearch = (new Book(new QueryBuilder(), $parameters))->withFacets();
+
+        $facets = collect(array_get($bookSearch->getQuery()->toArray(), 'aggregations'));
+
+        $facets_from_config = collect(config('search.aggregations'));
+
+        $this->assertEquals($facets->keys(), $facets_from_config->map(function($element){
+            return array_get($element, 'title');
+        }), "The Facet titles from config where compared with the aggregations in the query, they should be the same, they are not.");
+
+        $this->assertFalse($facets_from_config->map(function($facet){
+            return array_get($facet, 'callback', false);
+        })->filter()->contains(function($callback){
+            return ! is_callable($callback);
+        }), "The facets in config contain a callback, which is not callable.");
     }
 }
