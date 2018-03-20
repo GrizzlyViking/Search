@@ -1,9 +1,9 @@
 {
-  "name": "laravel/laravel",
-  "description": "The Laravel Framework.",
+  "name": "Search API",
+  "description": "Search API, possibly even a micro-service!?!",
   "keywords": [
-    "framework",
-    "laravel"
+    "wordery",
+    "search"
   ],
   "license": "MIT",
   "type": "project",

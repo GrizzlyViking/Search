@@ -26,4 +26,10 @@ Route::middleware('auth:api')->group(function() {
     });
 
     Route::post('books', 'SearchController@index');
+    Route::match(['GET', 'POST'],'category', 'SearchController@category');
+    Route::match(['GET', 'POST'], 'author', 'SearchController@author');
+    Route::match(['GET', 'POST'], 'publisher', 'SearchController@publisher');
+
+    Route::match(['GET', 'POST'], 'blog', 'SearchController@blog');
+    Route::match(['GET', 'POST'], 'tags', 'SearchController@tags');
 });
