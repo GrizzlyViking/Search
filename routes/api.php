@@ -19,6 +19,6 @@ Route::middleware('api')->group(function() {
     Route::match(['GET', 'POST'], 'author', 'SearchController@author');
     Route::match(['GET', 'POST'], 'publisher', 'SearchController@publisher');
 
-    Route::match(['GET', 'POST'], 'blog', 'SearchController@blog');
-    Route::match(['GET', 'POST'], 'tags', 'SearchController@tags');
+    Route::match(['GET', 'POST'], 'blog', 'BlogController@index');
+    Route::match(['GET', 'POST'], 'tags', 'TagController@index');
 });
