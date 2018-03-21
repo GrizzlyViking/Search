@@ -23,7 +23,7 @@ class SearchController extends Controller
 
     public function index(Book $book)
     {
-        return $this->book->withFacets()->search();
+        return $this->book->withFacets()->search()->getIsbns();
     }
 
     public function category()
@@ -50,6 +50,8 @@ class SearchController extends Controller
         $query->setQueries(\GrizzlyViking\QueryBuilder\Leaf\Factories\Query::create(
             ['match' => ['blog' => 'Harry Potter']]
         ));
+
+        return $query->getQuery()->toJson();
     }
 
     public function tags () {

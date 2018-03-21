@@ -13,19 +13,8 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-
-Route::middleware('auth:api')->group(function() {
-    Route::post('test', function(\App\Http\Requests\SearchTerms $request) {
-
-        $request->validate();
-        return $request->validated();
-    });
-
-    Route::post('books', 'SearchController@index');
+Route::middleware('api')->group(function() {
+    Route::match(['GET', 'POST'], 'books', 'SearchController@index');
     Route::match(['GET', 'POST'],'category', 'SearchController@category');
     Route::match(['GET', 'POST'], 'author', 'SearchController@author');
     Route::match(['GET', 'POST'], 'publisher', 'SearchController@publisher');

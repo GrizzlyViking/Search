@@ -242,12 +242,14 @@ class Book implements SearchInterface
             $filters = $this->terms->only(config('search.filters'));
             $options = $aggregation;
 
-            if ($buckets = array_get($aggregation, 'buckets', false)) {
+            if ($buckets = array_get($aggregation, 'buckets', false) || $buckets = array_get($aggregation, $aggregationKey.'.buckets', false)) {
                 $options = collect($buckets)->flatMap(function($bucket, $key) {
                     return [
                         array_get($bucket, 'key', $key) => array_get($bucket, 'doc_count', $key)
                     ];
                 });
+            } else {
+                $options = collect($buckets);
             }
 
             return [
