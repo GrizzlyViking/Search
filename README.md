@@ -1,5 +1,22 @@
-ElasticSearchBuilder Query
+# Elastic Search
+This is intended to be the micro service for Book Search. But it will also be able to do searches on other Elastic Indexes, ex. blogs, tags.
+
+## Endpoints
+```php
++---------------+----------------------+----------------------------------------------------------------------------+------------+
+| Method        | URI                  | Action                                                                     | Middleware |
++---------------+----------------------+----------------------------------------------------------------------------+------------+
+| GET|POST|HEAD | author               | App\Http\Controllers\SearchController@author                               | api        |
+| GET|POST|HEAD | blog                 | App\Http\Controllers\SearchController@blog                                 | api        |
+| POST          | books                | App\Http\Controllers\SearchController@index                                | api        |
+| GET|POST|HEAD | category             | App\Http\Controllers\SearchController@category                             | api        |
+| GET|POST|HEAD | publisher            | App\Http\Controllers\SearchController@publisher                            | api        |
+| GET|POST|HEAD | tags                 | App\Http\Controllers\SearchController@tags                                 | api        |
++---------------+----------------------+----------------------------------------------------------------------------+------------+
 ```
+
+#### ElasticSearchBuilder Query
+```json
 {
     "_source": [
         "isbn13"
