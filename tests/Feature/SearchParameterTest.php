@@ -26,7 +26,7 @@ class SearchParameterTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $parameters->validate();
+        $parameters->validateResolved();
 
         $this->assertContains(["term" => "fire"], $parameters->validated(), "term has not been cleansed of in-term filters.");
         $this->assertContains(["contributors" => "J K Rawlings"], $parameters->validated(), "in-term filters have not been allocated");

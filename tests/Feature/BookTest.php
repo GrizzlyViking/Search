@@ -25,7 +25,7 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $parameters->validate();
+        $parameters->validateResolved();
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
 
@@ -35,7 +35,7 @@ class BookTest extends TestCase
 
         $this->assertEquals('fire', array_get($multi_match, 'multi_match.query'), 'Multi match should have contained query => fire, but did not.');
         $this->assertEquals( array_get(array_first($config_query_must), 'multi_match.type'), array_get($multi_match, 'multi_match.type'), 'Multi match should have contained type => '.config('search.multiMatch.type').', but did not.');
-        $this->assertEquals(array_get(array_first($config_query_must), 'multi_match.fields'), array_get($multi_match, 'multi_match.fields'));
+        $this->assertEquals( array_get(array_first($config_query_must), 'multi_match.fields'), array_get($multi_match, 'multi_match.fields'));
     }
 
     /** @test */
@@ -52,7 +52,7 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $parameters->validate();
+        $parameters->validateResolved();
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
 
@@ -80,7 +80,7 @@ class BookTest extends TestCase
             config('search.pagination.resultsPerPageKey') => $resultsPerPage
         ]);
 
-        $parameters->validate();
+        $parameters->validateResolved();
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
 
@@ -106,7 +106,7 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $parameters->validate();
+        $parameters->validateResolved();
 
         $bookSearch = (new Book(new QueryBuilder(), $parameters))->withFacets();
 

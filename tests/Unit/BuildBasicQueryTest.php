@@ -43,7 +43,7 @@ class BuildBasicQueryTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $parameters->validate();
+        $parameters->validateResolved();
 
         $search = new Book(new QueryBuilder(), $parameters);
 
