@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Api\Search\Book;
+use App\Http\Requests\SearchTerms;
+use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Illuminate\Http\Request;
 
@@ -23,39 +25,43 @@ class SearchController extends Controller
 
     public function index(Book $book)
     {
-        return $this->book->withFacets()->search()->getIsbns();
+        return $book
+            ->withFacets()
+            ->search()
+            ->all();
+            //->getResultMetaData();
     }
 
-    public function category()
+    /**
+     * @param Book $book
+     * @param $author
+     * @return \Illuminate\Support\Collection
+     */
+    public function author(Book $book, $author)
     {
-        // TODO: return book search for a specific category
-        return $this->book->withFacets()->search();
+        $book->setMust(['contributors' => $author]);
+        return $book->search()->getIsbns();
     }
 
-    public function author()
+    public function category(Book $book, $category)
     {
-        // TODO: return book search for a specific author.
-        return $this->book->withFacets()->search();
+        $book->setMust(['category' => $category]);
+        return $book->withFacets()->search();
     }
 
-    public function publisher()
+    public function publisher(Book $book, $publisher)
     {
-        // TODO: return book search for a specific publisher.
-        return $this->book->withFacets()->search();
+        $book->setMust(['publisher' => $publisher]);
+        return $book->withFacets()->search();
     }
 
-    public function blog () {
-        // TODO: return blog posts
-        $query = new QueryBuilder();
-        $query->setQueries(\GrizzlyViking\QueryBuilder\Leaf\Factories\Query::create(
-            ['match' => ['blog' => 'Harry Potter']]
-        ));
-
-        return $query->getQuery()->toJson();
+    public function series(Book $book, $series)
+    {
+        $book->setMust(['series' => $series]);
+        return $book->withFacets()->search();
     }
 
     public function tags () {
         // TODO: return tags
     }
-
 }

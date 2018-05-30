@@ -9,13 +9,18 @@
 namespace App\Api\Search;
 
 use App\Api\Search\Defaults\Aggregations as DefaultFacets;
+use Elasticsearch\Client;
 use GrizzlyViking\QueryBuilder\Branches\Aggregations;
+use GrizzlyViking\QueryBuilder\Branches\BranchInterface;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\MultiMatch;
 use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
+use GrizzlyViking\QueryBuilder\Leaf\LeafInterface;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use App\Http\Requests\SearchTerms;
+use GrizzlyViking\QueryBuilder\ResponseInterface;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use GrizzlyViking\QueryBuilder\Response;
 
@@ -63,9 +68,18 @@ class Book implements SearchInterface
     /**
      * @return Response
      */
-    public function search(): Response
+    public function search(): ResponseInterface
     {
-        $this->searchResults = $this->builder->search();
+        $query = [
+            'index' => config('search.index.index', 'books'),
+            'type'  => config('search.index.type', 'book'),
+            'body'  => $this->getQuery()
+        ];
+
+        /** @var Client $database */
+        $database = app('ElasticSearch');
+
+        $this->searchResults = new Response($database->search($query));
 
         $this->applyCallbacksToAggregates();
 
@@ -78,6 +92,29 @@ class Book implements SearchInterface
     public function getQuery(): Collection
     {
         return $this->builder->getQuery();
+    }
+
+    /**
+     * @param array $query
+     */
+    public function setMust(array $query)
+    {
+        $query = Query::create($this->parseUrlString($query));
+        $query->setBoolean('must');
+        $branch = Queries::create($query);
+        $this->builder->setQueries($branch);
+    }
+
+    /**
+     * @param array $query
+     * @return array
+     * TODO: deal with double hyphen, '--'
+     */
+    private function parseUrlString(array $query): array
+    {
+        return collect($query)->map(function($element) {
+            return str_replace(['_', '-'], ' ', $element);
+        })->toArray();
     }
 
     private function buildQuery($term)
@@ -128,7 +165,7 @@ class Book implements SearchInterface
      * @param SearchTerms $terms
      * @return $this
      */
-    public function buildSearch(SearchTerms $terms): Book
+    public function buildSearch(FormRequest $terms): SearchInterface
     {
         $this->terms = collect($terms->validated());
 

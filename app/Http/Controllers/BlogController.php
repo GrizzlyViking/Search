@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Api\Search\Blog;
+use App\Http\Requests\BlogRequest;
 
 class BlogController extends Controller
 {
-    public function index()
+    public function index(Blog $blog)
     {
-        // TODO: create the retrieval of blog-categories
-        return $this;
+        return $blog->search()->blogs();
     }
 }

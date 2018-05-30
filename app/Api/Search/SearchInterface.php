@@ -9,7 +9,13 @@
 namespace App\Api\Search;
 
 
+use GrizzlyViking\QueryBuilder\ResponseInterface;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Collection;
+
 interface SearchInterface
 {
+    public function search(): ResponseInterface;
 
+    public function getQuery(): Collection;
 }
