@@ -11,12 +11,10 @@ namespace App\Api\Search;
 use App\Api\Search\Defaults\Aggregations as DefaultFacets;
 use Elasticsearch\Client;
 use GrizzlyViking\QueryBuilder\Branches\Aggregations;
-use GrizzlyViking\QueryBuilder\Branches\BranchInterface;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\MultiMatch;
 use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
-use GrizzlyViking\QueryBuilder\Leaf\LeafInterface;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use App\Http\Requests\SearchTerms;
 use GrizzlyViking\QueryBuilder\ResponseInterface;
@@ -50,7 +48,9 @@ class Book implements SearchInterface
     protected $builder;
     /** @var SearchTerms */
     protected $terms;
-    protected $index = 'books_3';
+    /** @var string */
+    protected $index = 'books';
+    /** @var string */
     protected $type = 'book';
     /** @var Collection */
     protected $books;
@@ -59,10 +59,53 @@ class Book implements SearchInterface
     /** @var Response */
     protected $searchResults;
 
+    /**
+     * Book constructor.
+     * @param QueryBuilder $queryBuilder
+     * @param SearchTerms $terms
+     */
     public function __construct(QueryBuilder $queryBuilder, SearchTerms $terms)
     {
         $this->builder = $queryBuilder;
         $this->buildSearch($terms);
+    }
+
+    /**
+     * @param string $index
+     * @return Book
+     */
+    public function setIndex($index)
+    {
+        $this->index = $index;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIndex(): string
+    {
+        return $this->index;
+    }
+
+    /**
+     * @param string $type
+     * @return Book
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
     }
 
     /**
@@ -71,8 +114,8 @@ class Book implements SearchInterface
     public function search(): ResponseInterface
     {
         $query = [
-            'index' => config('search.index.index', 'books'),
-            'type'  => config('search.index.type', 'book'),
+            'index' => $this->getIndex(),
+            'type'  => $this->getType(),
             'body'  => $this->getQuery()
         ];
 
@@ -128,6 +171,9 @@ class Book implements SearchInterface
         })->toArray();
     }
 
+    /**
+     * @param string $term
+     */
     private function buildQuery($term)
     {
         $config = config('search.query');
@@ -284,6 +330,11 @@ class Book implements SearchInterface
      */
     private function defaultAggregationCallback()
     {
+        /**
+         * @param $aggregationKey
+         * @param $aggregation
+         * @return array
+         */
         return function ($aggregationKey, $aggregation) {
 
 
@@ -309,6 +360,9 @@ class Book implements SearchInterface
         };
     }
 
+    /**
+     * @return void
+     */
     private function applyCallbacksToAggregates()
     {
         $this->builder->getAggregates()->getLeaves()->each(function($aggregation) { /** @var \GrizzlyViking\QueryBuilder\Leaf\Aggregation $aggregation */

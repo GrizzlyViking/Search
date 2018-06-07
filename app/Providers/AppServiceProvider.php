@@ -37,14 +37,17 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(IdeHelperServiceProvider::class);
         }
 
-        $this->app->singleton(BookSearch::class, function ($app) {
+        $this->app->singleton(BookSearch::class, function ($app) { /** @var \Illuminate\Foundation\Application $app */
             return (new BookSearch(
                 $app->make(QueryBuilder::class),
                 $app->make(SearchTerms::class)
-            ))->setAggregates(DefaultFacades::get());
+            ))
+                ->setIndex(config('search.index.index', 'books'))
+                ->setType(config('search.index.type', 'books'))
+                ->setAggregates(DefaultFacades::get());
         });
 
-        $this->app->singleton(Blog::class, function($app){
+        $this->app->singleton(Blog::class, function($app){ /** @var \Illuminate\Foundation\Application $app */
             return new Blog(
                 $app->make(BlogRequest::class),
                 $app->make(QueryBuilder::class)
