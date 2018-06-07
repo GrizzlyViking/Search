@@ -61,5 +61,27 @@ class AppServiceProvider extends ServiceProvider
                 ->setHosts($host)
                 ->build();
         });
+
+        Collection::macro('multiDimensionalGet', function ($key, $default = null) {
+
+            if (!$this instanceof Collection) {
+                $clone = collect($this);
+            } else {
+                $clone = $this;
+            }
+            if ($clone->isEmpty()) {
+                return $default ?? collect([]);
+            }
+            if ($clone->has($key)) {
+                return collect($clone->get($key));
+            }
+
+            return $clone->flatMap(function ($value) {
+                return $value;
+            })->filter(function ($element) {
+                return is_array($element);
+            })->multiDimensionalGet($key, $default);
+        }
+        );
     }
 }

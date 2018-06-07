@@ -284,29 +284,27 @@ class Book implements SearchInterface
      */
     private function defaultAggregationCallback()
     {
-        return function($aggregationKey, $aggregation) {
+        return function ($aggregationKey, $aggregation) {
+
 
             /** @var \GrizzlyViking\QueryBuilder\Leaf\Aggregation $leaf */
             $leaf = $this->builder->getAggregates()->getLeaf($aggregationKey);
             $filters = $this->terms->only(config('search.filters'));
-            $options = $aggregation;
+            /** @var Collection $buckets */
+            $buckets = collect($aggregation)->multiDimensionalGet('buckets');
 
-            if ($buckets = array_get($aggregation, 'buckets', false) || $buckets = array_get($aggregation, $aggregationKey.'.buckets', false)) {
-                $options = collect($buckets)->flatMap(function($bucket, $key) {
-                    return [
-                        array_get($bucket, 'key', $key) => array_get($bucket, 'doc_count', $key)
-                    ];
-                });
-            } else {
-                $options = collect($buckets);
-            }
+            $options = $buckets->flatMap(function ($bucket, $key) {
+                return [
+                    array_get($bucket, 'key', $key) => array_get($bucket, 'doc_count', $key)
+                ];
+            });
 
             return [
-                'title' => ucwords($leaf->getTitle()),
-                'name' => 'filter['.$leaf->getField().']',
-                'anyLabel' => 'Any '.$leaf->getField(),
+                'title'        => ucwords($leaf->getTitle()),
+                'name'         => 'filter[' . $leaf->getField() . ']',
+                'anyLabel'     => 'Any ' . $leaf->getField(),
                 'currentValue' => $filters->toArray(),
-                'options' => $options->toArray()
+                'options'      => $options->toArray()
             ];
         };
     }
