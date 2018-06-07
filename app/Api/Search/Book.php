@@ -185,7 +185,7 @@ class Book implements SearchInterface
                 case config('search.pagination.pageKey'):
                     $from = 0;
 
-                    if ( ! $size = $this->terms->get(config('search.pagination.resultsPerPageKey'))) {
+                    if ( ! $size = $this->terms->get(config('search.pagination.resultsPerPageKey'), false)) {
 
                         $size = config('search.pagination.resultsPerPageDefault');
                     }
@@ -193,8 +193,9 @@ class Book implements SearchInterface
                     if ($this->terms->has(config('search.pagination.pageKey'))) {
                         // x = page 3 * 30 results per page 90
 
-                        $from = ($this->terms->get(config('search.pagination.resultsPerPageKey'))) * ($this->terms->get(config('search.pagination.pageKey')) - 1);
+                        $from = ($size * ($this->terms->get(config('search.pagination.pageKey'), 1) - 1));
                     }
+
                     $this->builder->setSize($size, $from);
                     break;
             }
