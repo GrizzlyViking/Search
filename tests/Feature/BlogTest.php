@@ -26,9 +26,8 @@ class BlogTest extends TestCase
             new QueryBuilder()
         );
 
-        dd($searchBlog->search()->blogs());
+        $result = $searchBlog->search()->all();
 
-        return $searchBlog->getQuery();
-
+        $this->assertTrue(count($result) > 0);
     }
 }
