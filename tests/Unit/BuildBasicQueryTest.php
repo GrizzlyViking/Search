@@ -76,4 +76,34 @@ class BuildBasicQueryTest extends TestCase
         $this->assertEquals($result1, $result2, 'Comparing the aggregations in query with aggregations in response');
 
     }
+
+    /** @test */
+    public function parse_url_using_hyphens_and_double_hyphens()
+    {
+        $this->mockRequest->shouldReceive('validated')->andReturn(['term' => 'Harry Potter']);
+
+        $search = new Book(new QueryBuilder(), $this->mockRequest);
+
+        $response = $this->invokeMethod($search, 'parseUrlString', [['sebastian-Scheel--Edelmann']]);
+
+        $this->assertEquals(["sebastian Scheel-Edelmann"], $response);
+    }
+
+    /**
+     * Call protected/private method of a class.
+     *
+     * @param object &$object    Instantiated object that we will run method on.
+     * @param string $methodName Method name to call
+     * @param array  $parameters Array of parameters to pass into method.
+     *
+     * @return mixed Method return.
+     */
+    public function invokeMethod(&$object, $methodName, array $parameters = array())
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $method = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($object, $parameters);
+    }
 }

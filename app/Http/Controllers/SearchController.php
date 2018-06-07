@@ -45,20 +45,20 @@ class SearchController extends Controller
 
     public function category(Book $book, $category)
     {
-        $book->setMust(['category' => $category]);
-        return $book->withFacets()->search();
+        $book->setMust([SearchTerms::CATEGORIES => $category]);
+        return $book->withFacets()->getQuery();//->search()->all();
     }
 
     public function publisher(Book $book, $publisher)
     {
         $book->setMust(['publisher' => $publisher]);
-        return $book->withFacets()->search();
+        return $book->withFacets()->search()->all();
     }
 
     public function series(Book $book, $series)
     {
         $book->setMust(['series' => $series]);
-        return $book->withFacets()->search();
+        return $book->withFacets()->search()->all();
     }
 
     public function tags () {

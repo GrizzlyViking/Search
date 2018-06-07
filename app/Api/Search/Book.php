@@ -108,12 +108,23 @@ class Book implements SearchInterface
     /**
      * @param array $query
      * @return array
-     * TODO: deal with double hyphen, '--'
      */
     private function parseUrlString(array $query): array
     {
         return collect($query)->map(function($element) {
-            return str_replace(['_', '-'], ' ', $element);
+
+            if (count($array = explode('--',$element))>1) {
+                $return = [];
+                foreach ($array as $string) {
+                    $return[] = str_replace(['_', '-'], ' ', $string);
+                }
+
+                return implode('-', $return);
+            } else {
+
+                return str_replace(['_', '-'], ' ', $element);
+            }
+
         })->toArray();
     }
 

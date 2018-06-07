@@ -17,12 +17,16 @@ class BlogTest extends TestCase
         /** @var Book $bookSearch */
         $this->assertTrue(true);
 
-        $request = $this->app->make(BlogRequest::class, ['blog' => 'Harry Potter']);
+        $request = $this->app->make(BlogRequest::class);
+        $request->replace(['label' => 'Book of the Week']);
+
 
         $searchBlog = new Blog(
             $request,
             new QueryBuilder()
         );
+
+        dd($searchBlog->search()->blogs());
 
         return $searchBlog->getQuery();
 
