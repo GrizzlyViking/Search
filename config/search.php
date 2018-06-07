@@ -167,7 +167,8 @@ return [
             ],
             [
                 'title' => 'author',
-                'field' => 'contributors.exact_matches_ci'
+                'field' => 'contributors.exact_matches_ci',
+                'sampler' => ['shard_size' => 10000]
             ],
             [
                 'title' => 'Age Group',
