@@ -29,7 +29,6 @@ class SearchController extends Controller
             ->withFacets()
             ->search()
             ->all();
-            //->getResultMetaData();
     }
 
     /**
