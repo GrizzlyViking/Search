@@ -1,0 +1,9 @@
+[template]
+src   = "search.env.tmpl"
+dest  = "/data/code/.env"
+owner = "root"
+group = "root"
+mode  = "0644"
+keys  = [
+ "/search",
+]
