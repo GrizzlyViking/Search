@@ -168,6 +168,7 @@ return [
          * Package Service Providers...
          */
         \Jenssegers\Mongodb\MongodbServiceProvider::class,
+        \Wordery\Utilities\UtilitiesServiceProvider::class,
 
         /*
          * Application Service Providers...

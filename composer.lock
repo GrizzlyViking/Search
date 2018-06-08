@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "0fa2f27c8199ce867f8c451aaae08a88",
+    "content-hash": "6271de2408611c02cb1c871a56c6a609",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -1750,16 +1750,16 @@
         },
         {
             "name": "paragonie/random_compat",
-            "version": "v2.0.14",
+            "version": "v2.0.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paragonie/random_compat.git",
-                "reference": "f6ce7dd93628088e1017fb5dd73b0b9fec7df9e5"
+                "reference": "10bcb46e8f3d365170f6de9d05245aa066b81f09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/f6ce7dd93628088e1017fb5dd73b0b9fec7df9e5",
-                "reference": "f6ce7dd93628088e1017fb5dd73b0b9fec7df9e5",
+                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/10bcb46e8f3d365170f6de9d05245aa066b81f09",
+                "reference": "10bcb46e8f3d365170f6de9d05245aa066b81f09",
                 "shasum": ""
             },
             "require": {
@@ -1795,7 +1795,7 @@
                 "pseudorandom",
                 "random"
             ],
-            "time": "2018-06-06T17:40:22+00:00"
+            "time": "2018-06-08T15:26:40+00:00"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -4514,6 +4514,56 @@
             "time": "2018-06-05T03:40:05+00:00"
         },
         {
+            "name": "predis/predis",
+            "version": "v1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nrk/predis.git",
+                "reference": "f0210e38881631afeafb56ab43405a92cafd9fd1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nrk/predis/zipball/f0210e38881631afeafb56ab43405a92cafd9fd1",
+                "reference": "f0210e38881631afeafb56ab43405a92cafd9fd1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.8"
+            },
+            "suggest": {
+                "ext-curl": "Allows access to Webdis when paired with phpiredis",
+                "ext-phpiredis": "Allows faster serialization and deserialization of the Redis protocol"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Predis\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Daniele Alessandri",
+                    "email": "suppakilla@gmail.com",
+                    "homepage": "http://clorophilla.net"
+                }
+            ],
+            "description": "Flexible and feature-complete Redis client for PHP and HHVM",
+            "homepage": "http://github.com/nrk/predis",
+            "keywords": [
+                "nosql",
+                "predis",
+                "redis"
+            ],
+            "time": "2016-06-16T16:22:20+00:00"
+        },
+        {
             "name": "sebastian/code-unit-reverse-lookup",
             "version": "1.0.1",
             "source": {
@@ -5221,6 +5271,40 @@
                 "validate"
             ],
             "time": "2018-01-29T19:49:41+00:00"
+        },
+        {
+            "name": "wordery/utilities",
+            "version": "1.1.3",
+            "source": {
+                "type": "git",
+                "url": "git@git.wordery.net:seb/utilitiesPkg",
+                "reference": "ecdf87a9451f510cad7d4d9131fda27325e0122a"
+            },
+            "require": {
+                "elasticsearch/elasticsearch": ">=5.3",
+                "illuminate/redis": "^5.4",
+                "jenssegers/mongodb": "^3.3",
+                "predis/predis": "^1.1"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "authors": [
+                {
+                    "name": "Sebastian Scheel Edelmann",
+                    "email": "seb@wordery.com"
+                }
+            ],
+            "description": "Small tools to help development for .com",
+            "homepage": "https://git.wordery.net/seb/utilitiesPkg",
+            "keywords": [
+                "utilities",
+                "wordery"
+            ],
+            "time": "2018-06-07T14:42:26+00:00"
         }
     ],
     "aliases": [],
