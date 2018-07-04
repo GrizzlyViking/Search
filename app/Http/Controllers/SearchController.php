@@ -23,12 +23,13 @@ class SearchController extends Controller
     }
 
 
-    public function index(Book $book)
+    public function index(Book $book, SearchTerms $terms)
     {
         return $book
             ->withFacets()
-            ->search()
-            ->all();
+            ->getQuery();
+            //->search()
+            //->all();
     }
 
     /**
