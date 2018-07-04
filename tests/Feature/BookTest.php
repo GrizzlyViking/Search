@@ -124,4 +124,39 @@ class BookTest extends TestCase
             return ! is_callable($callback);
         }), "The facets in config contain a callback, which is not callable.");
     }
+
+    /** @test */
+    public function search_with_many_facets()
+    {
+        $parameters = $this->app->make(SearchTerms::class);
+
+        $parameters->replace([
+            'term'           => 'Harry Potter',
+            'viewBy'         => 'grid', // this should not be validated
+            'resultsPerPage' => 10,
+            'page'           => 1,
+            'contributors'   => 'j. k. rowlings',
+            'interestAge'    => '9-12',
+            'languages'      => 'eng'
+        ]);
+
+        $parameters->validateResolved();
+
+        $bookSearch = (new Book(new QueryBuilder(), $parameters))->withFacets();
+
+        $query = $bookSearch->getQuery()->toArray();
+
+        // Check interest age is parsed correctly.
+        $this->assertContains(['range'=> ["interestAge" => [ "gte" => "9", "lt" => "12" ]]], array_get($query, 'post_filter.bool.must'));
+
+        // Check that contributor is j.k. rowling
+        // check the filter on the aggregate filter, in this example I'm checking the Express Delivery filter
+        $this->assertEquals([
+            ["match_phrase" => ["contributors" => "j k rowlings"]],
+            ["range" => ["interestAge" => ["gte" => "9","lt" => "12"]]],
+            ["match" => ["languages" => "eng"]]
+        ], array_get($query, 'aggregations.Express Delivery.filter.bool.must'));
+
+        $this->assertTrue(true);
+    }
 }

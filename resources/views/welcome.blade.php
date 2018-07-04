@@ -1,3 +1,8 @@
+@if(isset($errors))
+
+        <?php
+        var_dump($errors->all()); die();?>
+@else
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
     <head>
@@ -79,7 +84,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel
+                    Fuck
                 </div>
 
                 <div class="links">
@@ -93,3 +98,4 @@
         </div>
     </body>
 </html>
+@endif

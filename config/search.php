@@ -124,6 +124,47 @@ return [
         'websiteCategoryCodes'
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pre query filter callbacks
+    |--------------------------------------------------------------------------
+    |
+    | In the case where a filter needs to be prepared to be query friendly, for
+    | for example, 'interestAge' search phrase provided could be 'toddlers' or '9-12'
+    | which needs to be translated to a greater than x and less than y. Or perhaps
+    | Publication dates where the phrase 'last 6 months'
+    |
+    */
+    'filter_callbacks' => [
+        'interestAge' => function ($phrase) {
+            switch (strtolower($phrase)) {
+                case 'babies':
+                    $values = [
+                        'lte' => 1
+                    ];
+                    break;
+                case 'toddlers':
+                    $values = [
+                        'gt' => 1,
+                        'lte' => 3
+                    ];
+                    break;
+                default:
+                    if (preg_match('/(\d+)\-(\d+)/', $phrase, $matches)) {
+                        $values = [
+                            'gte' => $matches[1],
+                            'lt' => $matches[2]
+                        ];
+                    } else {
+                        $values = ['gte' => 0];
+                    }
+                    break;
+            }
+
+            return ['range' => ['interestAge' => $values]];
+        }
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

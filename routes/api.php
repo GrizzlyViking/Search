@@ -22,4 +22,9 @@ Route::middleware('api')->group(function() {
 
     Route::match(['GET', 'POST'], 'blog', 'BlogController@index');
     Route::match(['GET', 'POST'], 'tags', 'TagController@index');
+
+    Route::match(['POST', 'GET', 'PUT'], 'errors', ['as' => 'errors', 'uses' => function(){
+        return view('errors');
+    }]);
 });
+

@@ -230,8 +230,19 @@ class Book implements SearchInterface
             $this->buildQuery($term);
         });
 
-        $this->terms->only(config('search.filters'))->each(function($filter, $key){
-           $this->builder->setFilters(Filter::create([$key => $filter]));
+        $this->terms->only(config('search.filters'))->each(function($filter, $key) {
+
+            // Applies callbacks intended for the query prior to execution.
+            if ($callback = config('search.filter_callbacks.'.$key, false)) {
+                $filter = $callback($filter);
+
+                $filter = Filter::create([$key => $filter]);
+            } else {
+
+                $filter = Filter::create([$key => $filter]);
+            }
+
+           $this->builder->setFilters($filter);
         });
 
         $this->terms->only([config('search.orderBy'), config('search.pagination.resultsPerPageKey'), config('search.pagination.pageKey')])->each(function($option, $key) {
