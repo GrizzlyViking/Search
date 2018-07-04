@@ -34,4 +34,15 @@ class SearchParameterTest extends TestCase
         $this->assertContains(["websiteCategoryCodes" => "Y"], $parameters->validated(), "Translation of 'categories' to 'websiteCategoryCodes' failed");
         $this->assertContains(["match" => "author"], $parameters->validated(), "match must be in a allowed amount of options");
     }
+
+    /** @test */
+    public function convert_a_range_to_a_query()
+    {
+
+        $parameters = $this->app->make(SearchTerms::class);
+
+        $parameters->replace([
+            'interestAge'    => '9-12'
+        ]);
+    }
 }
