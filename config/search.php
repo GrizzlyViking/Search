@@ -137,31 +137,48 @@ return [
     */
     'filter_callbacks' => [
         'interestAge' => function ($phrase) {
-            switch (strtolower($phrase)) {
-                case 'babies':
-                    $values = [
-                        'lte' => 1
-                    ];
-                    break;
-                case 'toddlers':
-                    $values = [
-                        'gt' => 1,
-                        'lte' => 3
-                    ];
-                    break;
-                default:
-                    if (preg_match('/(\d+)\-(\d+)/', $phrase, $matches)) {
-                        $values = [
-                            'gte' => $matches[1],
-                            'lt' => $matches[2]
+        if (is_array($phrase)) {
+            $age_groups = collect($phrase)->map(function($value){
+                switch (strtolower($value)) {
+                    case 'babies':
+                        return [
+                            'lte' => 1
                         ];
-                    } else {
-                        $values = ['gte' => 0];
-                    }
-                    break;
+                    case 'toddlers':
+                        return [
+                            'gt'  => 1,
+                            'lte' => 3
+                        ];
+                    default:
+                        if (preg_match('/(\d+)\-(\d+)/', $value, $matches)) {
+                            return [
+                                'gte' => $matches[1],
+                                'lt'  => $matches[2]
+                            ];
+                        } elseif(preg_match('/(\d+)\+/', $value, $matches)) {
+                            return [
+                                'gte' => $matches[1]
+                            ];
+                        } else {
+                            return ['gte' => 0];
+                        }
+                        break;
+                }
+            });
+
+            // This distinction is made because an array of age groups should be "or"
+            if ($age_groups->count() == 1) {
+
+                return ['range' => ['interestAge' => $age_groups->first()]];
+            } elseif($age_groups->count() > 1) {
+
+                return ['should' => $age_groups->map(function($group){
+                    return ['range' => ['interestAge' => $group]];
+                })->toArray()];
             }
 
-            return ['range' => ['interestAge' => $values]];
+        }
+
         }
     ],
 

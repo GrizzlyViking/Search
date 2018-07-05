@@ -14,7 +14,8 @@ use Illuminate\Http\Request;
 */
 
 Route::middleware('api')->group(function() {
-    Route::match(['GET', 'POST'], 'books', 'SearchController@index');
+    Route::post('books', 'SearchController@index');
+    Route::get('books', 'SearchController@index');
     Route::match(['GET', 'POST'], 'category/{category}', 'SearchController@category');
     Route::match(['GET', 'POST'], 'author/{author}', 'SearchController@author');
     Route::match(['GET', 'POST'], 'publisher/{publisher}', 'SearchController@publisher');
