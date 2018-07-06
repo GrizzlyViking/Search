@@ -25,7 +25,13 @@ class BookTest extends TestCase
             'match'      => 'author'
         ]);
 
-        $parameters->validateResolved();
+        try {
+            $parameters->validateResolved();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            dd($e->errors());
+        }
+
+        $parameters->messages();
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
 
@@ -136,7 +142,7 @@ class BookTest extends TestCase
             'resultsPerPage' => 10,
             'page'           => 1,
             'contributors'   => 'j. k. rowlings',
-            'interestAge'    => '9-12',
+            'interestAge'    => '9-12 years',
             'languages'      => 'eng'
         ]);
 

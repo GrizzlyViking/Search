@@ -138,7 +138,7 @@ return [
     'filter_callbacks' => [
         'interestAge' => function ($phrase) {
         if (is_array($phrase)) {
-            $age_groups = collect($phrase)->map(function($value){
+            $age_groups = collect($phrase)->flatMap(function($value){
                 switch (strtolower($value)) {
                     case 'babies':
                         return [
@@ -166,17 +166,8 @@ return [
                 }
             });
 
-            // This distinction is made because an array of age groups should be "or"
-            if ($age_groups->count() == 1) {
 
-                return ['range' => ['interestAge' => $age_groups->first()]];
-            } elseif($age_groups->count() > 1) {
-
-                return ['should' => $age_groups->map(function($group){
-                    return ['range' => ['interestAge' => $group]];
-                })->toArray()];
-            }
-
+            return ['range'=> ['interestAge' => $age_groups->toArray()]];
         }
 
         }

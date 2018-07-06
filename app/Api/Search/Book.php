@@ -236,7 +236,7 @@ class Book implements SearchInterface
             if ($callback = config('search.filter_callbacks.'.$key, false)) {
                 $filter = $callback($filter);
 
-                $filter = Filter::create([$key => $filter]);
+                $filter = Filter::create($filter);
             } else {
 
                 $filter = Filter::create([$key => $filter]);
