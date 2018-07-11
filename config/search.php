@@ -138,13 +138,14 @@ return [
     'filter_callbacks' => [
         'interestAge' => function ($phrase) {
         if (is_array($phrase)) {
-            $age_groups = collect($phrase)->flatMap(function($value){
+            $age_groups = collect($phrase)->map(function($value){
                 switch (strtolower($value)) {
                     case 'babies':
                         return [
                             'lte' => 1
                         ];
                     case 'toddlers':
+                    case 'toddler':
                         return [
                             'gt'  => 1,
                             'lte' => 3
@@ -166,8 +167,14 @@ return [
                 }
             });
 
+            if ($age_groups->count() == 1) {
+                return ['range' => ['interestAge' => $age_groups->flatMap(function($element){ return $element; })->toArray()]];
+            } else {
+                return ['should' => $age_groups->map(function($element){
 
-            return ['range'=> ['interestAge' => $age_groups->toArray()]];
+                    return ['range' => ['interestAge' => $element]];
+                })->toArray()];
+            }
         }
 
         }
