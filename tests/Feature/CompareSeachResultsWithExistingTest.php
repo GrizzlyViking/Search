@@ -53,7 +53,7 @@ class CompareSeachResultsWithExistingTest extends TestCase
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
 
-        die($bookSearch->getQuery()->toJson(128));
+        die($bookSearch->withFacets()->getQuery()->toJson(128));
 
 
     }

@@ -281,8 +281,8 @@ class Book implements SearchInterface
           $this->builder->setSize(config('search.pagination.resultsPerPageDefault'), 0);
         }
 
-        if (array_has(config('search'), 'script')) {
-            $this->builder->setScript(config('search.script'));
+        if ($functions = config('search.functions', false)) {
+            $this->builder->setScript($functions);
         }
 
         return $this;

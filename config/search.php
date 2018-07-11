@@ -66,25 +66,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Scripts
+    | Functions
     |--------------------------------------------------------------------------
     |
     | This scores various weights to achieve a improved bestseller list.
     |
     */
-    "script" => "(1 + Math.pow(_score, 0.5) * doc['scores.inStock'].value" .
-        " * (" .
-        "0.25 * doc['scores.sales30ALL'].value + " .
-        "0.1 * doc['scores.sales90ALL'].value + " .
-        "0.005 * doc['scores.sales180ALL'].value + " .
-        "0.05 * doc['scores.leadTime'].value + " .
-        "0.15 * doc['scores.readyToGo'].value + " .
-        "0.01 * doc['scores.hasJacket'].value + " .
-        "0.01 * doc['scores.hasGallery'].value" .
-        "))",
+    'functions' => [
+        "script" => "(1 + Math.pow(_score, 0.5) * doc['scores.inStock'].value" .
+            " * (" .
+            "0.25 * doc['scores.sales30ALL'].value + " .
+            "0.1 * doc['scores.sales90ALL'].value + " .
+            "0.005 * doc['scores.sales180ALL'].value + " .
+            "0.05 * doc['scores.leadTime'].value + " .
+            "0.15 * doc['scores.readyToGo'].value + " .
+            "0.01 * doc['scores.hasJacket'].value + " .
+            "0.01 * doc['scores.hasGallery'].value" .
+            "))",
 
-    "score_mode" => "first",
-    "boost_mode" => "replace",
+        "score_mode" => "first",
+        "boost_mode" => "replace",
+    ],
 
     /*
     |--------------------------------------------------------------------------
