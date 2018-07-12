@@ -128,6 +128,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Query Filters
+    |--------------------------------------------------------------------------
+    |
+    | Filters put in the query filter, i.e. things that would >not< contribute to
+    | the score. And would be excluded from the result >and< aggregations.
+    |
+    */
+
+    'query_filters' => [
+        'forSale',
+        'country'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pre query filter callbacks
     |--------------------------------------------------------------------------
     |
@@ -179,6 +194,12 @@ return [
             }
         }
 
+        },
+        'forSale' => function($forSale = 1){
+            return ['term' => ['forSale' => $forSale]];
+        },
+        'country' => function($countryCode){
+            return ['must_not' => ['terms' => ['salesExclusions' => [$countryCode]]]];
         }
     ],
 

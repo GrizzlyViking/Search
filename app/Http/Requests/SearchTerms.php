@@ -62,6 +62,7 @@ class SearchTerms extends FormRequest
     protected function prepareForValidation()
     {
         if (! empty($input = $this->input())) {
+            $input['forSale'] = 1;
             switch (true) {
                 case isset($input['term']) && is_string($input['term']) && strlen($input['term']) > 1 && (strpos($input['term'], ':') !== false):
                     /**

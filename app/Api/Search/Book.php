@@ -232,18 +232,19 @@ class Book implements SearchInterface
 
         $this->terms->only(config('search.filters'))->each(function($filter, $key) {
 
-            // Applies callbacks intended for the query prior to execution.
-            if ($callback = config('search.filter_callbacks.'.$key, false)) {
-                $filter = $callback($filter);
+            $filter = $this->buildFilter($filter, $key);
 
-                $filter = Filter::create($filter);
-            } else {
-
-                $filter = Filter::create([$key => $filter]);
-            }
-
-           $this->builder->setFilters($filter);
+            $this->builder->setFilters($filter);
         });
+
+        $this->terms->only(config('search.query_filters'))->each(function($filter, $key) {
+
+            $filter = $this->buildFilter($filter, $key, 'filter');
+
+            $this->builder->setFilters($filter);
+        });
+
+
 
         $this->terms->only([config('search.orderBy'), config('search.pagination.resultsPerPageKey'), config('search.pagination.pageKey')])->each(function($option, $key) {
             switch ($key) {
@@ -382,5 +383,34 @@ class Book implements SearchInterface
                 $aggregation->getCallback()
             );
         });
+    }
+
+    /**
+     * @param $filter
+     * @param $key
+     * @return \GrizzlyViking\QueryBuilder\Leaf\Filter
+     */
+    private function buildFilter($filter, $key, $attachPoint = 'post_filter'): \GrizzlyViking\QueryBuilder\Leaf\Filter
+    {
+        // Applies callbacks intended for the query prior to execution.
+        if ($callback = config('search.filter_callbacks.' . $key, false)) {
+
+            $filter = $callback($filter);
+
+            $filter = Filter::create($filter);
+        } else {
+
+            $filter = Filter::create([$key => $filter]);
+        }
+
+        if (!in_array($attachPoint, ['query_filter','filter', 'post_filter'])) {
+            throw new \InvalidArgumentException('Attachpoint for buildFilter invalid');
+        }
+
+        if (in_array($attachPoint, ['query_filter', 'filter'])) {
+            $filter->setAttachPoint('filter');
+        }
+
+        return $filter;
     }
 }
