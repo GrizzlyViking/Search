@@ -56,13 +56,21 @@ class SearchTerms extends FormRequest
         return $key;
     }
 
+    public function add($key, $value)
+    {
+        $input = $this->input();
+        $input[$key] = $value;
+
+        $this->replace($input);
+    }
+
     /**
      * @return void
      */
     protected function prepareForValidation()
     {
         if (! empty($input = $this->input())) {
-            $input['forSale'] = 1;
+            // TODO: this does not seem to be getting through, and very fecking uncertain about this being injected here.
             switch (true) {
                 case isset($input['term']) && is_string($input['term']) && strlen($input['term']) > 1 && (strpos($input['term'], ':') !== false):
                     /**
@@ -86,7 +94,7 @@ class SearchTerms extends FormRequest
             $input = collect($input)->flatMap(function($value, $key) {
                 return [$this->translate($key) => $value];
             })->map(function ($input, $key) {
-                    if (in_array($key, ['contributors', 'publisher', 'formats', 'interestAge']) && is_string($input)) {
+                    if (in_array($key, ['contributors', 'publisher', 'formats', 'interestAge', 'formatGroup']) && is_string($input)) {
                         return [$input];
                     }
 
@@ -114,6 +122,7 @@ class SearchTerms extends FormRequest
      */
     public function rules()
     {
+        // TODO: formatGroup, how to deal with that.
         return [
             'term'            => ['sometimes', 'nullable', 'string', new Utf8()],
             'id'              => 'sometimes|string',
@@ -124,6 +133,7 @@ class SearchTerms extends FormRequest
             'rank'            => 'sometimes|required|numeric|min:0|max:5',
             'interestAge'     => 'sometimes|required|array',
             'formats'         => 'sometimes|required|array',
+            'formatGroup'     => 'sometimes|required|array',
             'languages'       => 'sometimes|required|string',
             'country'         => 'sometimes|required|string',
             'series'          => 'sometimes|required|string',

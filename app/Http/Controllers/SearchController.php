@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Api\Search\Book;
 use App\Http\Requests\SearchTerms;
+use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Illuminate\Http\Request;
@@ -23,13 +24,19 @@ class SearchController extends Controller
     }
 
 
-    public function index(Book $book, SearchTerms $terms)
+    /**
+     * @param Book $book
+     * @param string $countryCode
+     * @return \Illuminate\Support\Collection|array
+     */
+    public function index(Book $book, string $countryCode)
     {
         return $book
+            ->addFilter(Filter::create('must_not', ['terms' => [ 'salesExclusions' => [strtoupper($countryCode)]]])->queryFilter())
             ->withFacets()
-            ->getQuery();
-            //->search()
-            //->all();
+            //->getQuery();
+            ->search()
+            ->all();
     }
 
     /**
@@ -59,9 +66,5 @@ class SearchController extends Controller
     {
         $book->setMust(['series' => $series]);
         return $book->withFacets()->search()->all();
-    }
-
-    public function tags () {
-        // TODO: return tags
     }
 }
