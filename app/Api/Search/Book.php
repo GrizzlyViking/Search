@@ -15,6 +15,7 @@ use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\MultiMatch;
 use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
+use GrizzlyViking\QueryBuilder\Leaf\LeafInterface;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use App\Http\Requests\SearchTerms;
 use GrizzlyViking\QueryBuilder\ResponseInterface;
@@ -232,18 +233,19 @@ class Book implements SearchInterface
 
         $this->terms->only(config('search.filters'))->each(function($filter, $key) {
 
-            // Applies callbacks intended for the query prior to execution.
-            if ($callback = config('search.filter_callbacks.'.$key, false)) {
-                $filter = $callback($filter);
+            $filter = $this->buildFilter($filter, $key);
 
-                $filter = Filter::create([$key => $filter]);
-            } else {
-
-                $filter = Filter::create([$key => $filter]);
-            }
-
-           $this->builder->setFilters($filter);
+            $this->builder->setFilters($filter);
         });
+
+        $this->terms->only(config('search.query_filters'))->each(function($filter, $key) {
+
+            $filter = $this->buildFilter($filter, $key, 'filter');
+
+            $this->builder->setFilters($filter);
+        });
+
+
 
         $this->terms->only([config('search.orderBy'), config('search.pagination.resultsPerPageKey'), config('search.pagination.pageKey')])->each(function($option, $key) {
             switch ($key) {
@@ -281,8 +283,8 @@ class Book implements SearchInterface
           $this->builder->setSize(config('search.pagination.resultsPerPageDefault'), 0);
         }
 
-        if (array_has(config('search'), 'script')) {
-            $this->builder->setScript(config('search.script'));
+        if ($functions = config('search.functions', false)) {
+            $this->builder->setScript($functions);
         }
 
         return $this;
@@ -348,26 +350,41 @@ class Book implements SearchInterface
          */
         return function ($aggregationKey, $aggregation) {
 
-
             /** @var \GrizzlyViking\QueryBuilder\Leaf\Aggregation $leaf */
             $leaf = $this->builder->getAggregates()->getLeaf($aggregationKey);
+            $aggregation_config = collect(config('search.aggregations'))->first(function($agg) use ($leaf) {
+                return array_get($agg, 'title', false) == $leaf->getTitle();
+            });
+
             $filters = $this->terms->only(config('search.filters'));
             /** @var Collection $buckets */
             $buckets = collect($aggregation)->multiDimensionalGet('buckets');
 
-            $options = $buckets->flatMap(function ($bucket, $key) {
-                return [
-                    array_get($bucket, 'key', $key) => array_get($bucket, 'doc_count', $key)
-                ];
+            $options = $buckets->reject(function($value, $key) {
+                return array_get($value, 'doc_count', false) === 0;
+            })->flatMap(function ($bucket, $key) {
+                return [[
+                    'count' => array_get($bucket, 'doc_count', $key),
+                    'label' => ucwords(array_get($bucket, 'key', $key)),
+                    'value' => array_get($bucket, 'key', $key)
+                ]];
             });
 
-            return [
+            $sanitizedFilter = preg_replace('/^([a-zA-Z0-9]+)\..*$/', "$1",$leaf->getField());
+
+            $return = [
                 'title'        => ucwords($leaf->getTitle()),
-                'name'         => 'filter[' . $leaf->getField() . ']',
-                'anyLabel'     => 'Any ' . $leaf->getField(),
-                'currentValue' => $filters->toArray(),
+                'name'         => $sanitizedFilter.'[]',
+                'anyLabel'     => 'Any ' . $sanitizedFilter,
+                'currentValue' => $filters->get($sanitizedFilter, []),
                 'options'      => $options->toArray()
             ];
+
+            if ($type = array_get($aggregation_config, 'type', false)) {
+                $return['type'] = $type;
+            }
+
+            return $return;
         };
     }
 
@@ -382,5 +399,45 @@ class Book implements SearchInterface
                 $aggregation->getCallback()
             );
         });
+    }
+
+    /**
+     * @param $filter
+     * @param $key
+     * @return \GrizzlyViking\QueryBuilder\Leaf\Filter
+     */
+    private function buildFilter($filter, $key, $attachPoint = 'post_filter'): \GrizzlyViking\QueryBuilder\Leaf\Filter
+    {
+        // Applies callbacks intended for the query prior to execution.
+        if ($callback = config('search.filter_callbacks.' . $key, false)) {
+
+            $filter = $callback($filter);
+
+            $filter = Filter::create($filter);
+        } else {
+
+            $filter = Filter::create([$key => $filter]);
+        }
+
+        if (!in_array($attachPoint, ['query_filter','filter', 'post_filter'])) {
+            throw new \InvalidArgumentException('Attachpoint for buildFilter invalid');
+        }
+
+        if (in_array($attachPoint, ['query_filter', 'filter'])) {
+            $filter->setAttachPoint('filter');
+        }
+
+        return $filter;
+    }
+
+    /**
+     * @param LeafInterface $filter
+     * @return Book
+     */
+    public function addFilter($filter)
+    {
+        $this->builder->setFilters($filter);
+
+        return $this;
     }
 }

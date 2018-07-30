@@ -6,6 +6,9 @@ use App\Api\Search\Blog;
 use App\Api\Search\Book;
 use App\Http\Requests\BlogRequest;
 use Elasticsearch\ClientBuilder;
+use GrizzlyViking\QueryBuilder\Branches\Factories\Queries;
+use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
+use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider,
     App\Api\Search\Book as BookSearch,
@@ -38,10 +41,15 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->app->singleton(BookSearch::class, function ($app) { /** @var \Illuminate\Foundation\Application $app */
-            return (new BookSearch(
-                $app->make(QueryBuilder::class),
+            /** @var QueryBuilder $build */
+            $build = $app->make(QueryBuilder::class);
+            $build->setFilters(Filter::create(['term' => ['forSale' => 1]])->queryFilter());
+
+            $search = new BookSearch(
+                $build,
                 $app->make(SearchTerms::class)
-            ))
+            );
+            return $search
                 ->setIndex(config('search.index.index', 'books'))
                 ->setType(config('search.index.type', 'books'))
                 ->setAggregates(DefaultFacades::get());
@@ -84,7 +92,11 @@ class AppServiceProvider extends ServiceProvider
             })->filter(function ($element) {
                 return is_array($element);
             })->multiDimensionalGet($key, $default);
-        }
-        );
+        });
+
+        /** @return Collection */
+        Collection::macro('mergeRecursive', function($array) {
+            return collect(array_merge_recursive($this->toArray(), $array));
+        });
     }
 }

@@ -66,25 +66,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Scripts
+    | Functions
     |--------------------------------------------------------------------------
     |
     | This scores various weights to achieve a improved bestseller list.
     |
     */
-    "script" => "(1 + Math.pow(_score, 0.5) * doc['scores.inStock'].value" .
-        " * (" .
-        "0.25 * doc['scores.sales30ALL'].value + " .
-        "0.1 * doc['scores.sales90ALL'].value + " .
-        "0.005 * doc['scores.sales180ALL'].value + " .
-        "0.05 * doc['scores.leadTime'].value + " .
-        "0.15 * doc['scores.readyToGo'].value + " .
-        "0.01 * doc['scores.hasJacket'].value + " .
-        "0.01 * doc['scores.hasGallery'].value" .
-        "))",
+    'functions' => [
+        "script" => "(1 + Math.pow(_score, 0.5) * doc['scores.inStock'].value" .
+            " * (" .
+            "0.25 * doc['scores.sales30ALL'].value + " .
+            "0.1 * doc['scores.sales90ALL'].value + " .
+            "0.005 * doc['scores.sales180ALL'].value + " .
+            "0.05 * doc['scores.leadTime'].value + " .
+            "0.15 * doc['scores.readyToGo'].value + " .
+            "0.01 * doc['scores.hasJacket'].value + " .
+            "0.01 * doc['scores.hasGallery'].value" .
+            "))",
 
-    "score_mode" => "first",
-    "boost_mode" => "replace",
+        "score_mode" => "first",
+        "boost_mode" => "replace",
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -121,7 +123,23 @@ return [
         'tagIds',
         'rating',
         'formats',
+        'formatGroup',
         'websiteCategoryCodes'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Query Filters
+    |--------------------------------------------------------------------------
+    |
+    | Filters put in the query filter, i.e. things that would >not< contribute to
+    | the score. And would be excluded from the result >and< aggregations.
+    |
+    */
+
+    'query_filters' => [
+        'forSale',
+        'country'
     ],
 
     /*
@@ -137,31 +155,52 @@ return [
     */
     'filter_callbacks' => [
         'interestAge' => function ($phrase) {
-            switch (strtolower($phrase)) {
-                case 'babies':
-                    $values = [
-                        'lte' => 1
-                    ];
-                    break;
-                case 'toddlers':
-                    $values = [
-                        'gt' => 1,
-                        'lte' => 3
-                    ];
-                    break;
-                default:
-                    if (preg_match('/(\d+)\-(\d+)/', $phrase, $matches)) {
-                        $values = [
-                            'gte' => $matches[1],
-                            'lt' => $matches[2]
+        if (is_array($phrase)) {
+            $age_groups = collect($phrase)->map(function($value){
+                switch (strtolower($value)) {
+                    case 'babies':
+                        return [
+                            'lte' => 1
                         ];
-                    } else {
-                        $values = ['gte' => 0];
-                    }
-                    break;
-            }
+                    case 'toddlers':
+                    case 'toddler':
+                        return [
+                            'gt'  => 1,
+                            'lte' => 3
+                        ];
+                    default:
+                        if (preg_match('/(\d+)\-(\d+)/', $value, $matches)) {
+                            return [
+                                'gte' => $matches[1],
+                                'lt'  => $matches[2]
+                            ];
+                        } elseif(preg_match('/(\d+)\+/', $value, $matches)) {
+                            return [
+                                'gte' => $matches[1]
+                            ];
+                        } else {
+                            return ['gte' => 0];
+                        }
+                        break;
+                }
+            });
 
-            return ['range' => ['interestAge' => $values]];
+            if ($age_groups->count() == 1) {
+                return ['range' => ['interestAge' => $age_groups->flatMap(function($element){ return $element; })->toArray()]];
+            } else {
+                return ['should' => $age_groups->map(function($element){
+
+                    return ['range' => ['interestAge' => $element]];
+                })->toArray()];
+            }
+        }
+
+        },
+        'forSale' => function($forSale = 1){
+            return ['term' => ['forSale' => $forSale]];
+        },
+        'country' => function($countryCode){
+            return ['must_not' => ['terms' => ['salesExclusions' => [$countryCode]]]];
         }
     ],
 
@@ -181,7 +220,7 @@ return [
             'field'    => 'leadTime',
             'callback' => function ($aggregationKey, $aggregations) {
 
-                $bucket = collect(array_get($aggregations, 'buckets'))->first(function ($bucket) {
+                $bucket = collect($aggregations)->multiDimensionalGet('buckets')->first(function ($bucket) {
                     return array_get($bucket, 'key', false) == 0;
                 });
 
@@ -223,8 +262,12 @@ return [
             'title'    => 'Publication Date',
             'field'    => 'publicationDate',
             //'order' => ['publicationDate' => 'desc'],
-            'ranges'   => [
-                ['key' => 'Coming soon', 'from' => date('Y-m-d'), 'to' => date('Y-m-d', strtotime('+3 month'))],
+            'ranges' => [
+                [
+                    'key' => 'Coming soon',
+                    'from' => date('Y-m-d'),
+                    'to' => date('Y-m-d', strtotime('+3 month'))
+                ],
                 [
                     'key'  => 'Within the last month',
                     'to'   => date('Y-m-d'),
@@ -235,18 +278,33 @@ return [
                     'to'   => date('Y-m-d'),
                     'from' => date('Y-m-d', strtotime('-3 month'))
                 ],
-                ['key' => 'Within the last year', 'to' => date('Y-m-d'), 'from' => date('Y-m-d', strtotime('-1 year'))],
-                ['key' => 'Over a year ago', 'to' => date('Y-m-d', strtotime('-1 year'))]
-            ],
+                [
+                    'key' => 'Within the last year',
+                    'to' => date('Y-m-d'),
+                    'from' => date('Y-m-d', strtotime('-1 year'))
+                ],
+                [
+                    'key' => 'Over a year ago',
+                    'to' => date('Y-m-d', strtotime('-1 year'))
+                ]
+            ]
+        ],
+        [
+            'title' => 'formats',
+            'field' => 'formatGroup.exact_matches_ci'
+        ],
+        [
+            'title' => 'languages',
+            'field' => 'languages',
             'callback' => function ($aggregationKey, $aggregations) {
                 $searchTerms = app(SearchTerms::class);
 
-                $clicked = $searchTerms->get('publicationDate', []);
+                $clicked = $searchTerms->get('languages', []);
 
-                $options = collect(array_get($aggregations, 'buckets'))->map(function ($element, $key) {
+                $options = collect($aggregations)->multiDimensionalGet('buckets')->map(function ($element, $key) {
                     return [
-                        'label' => $key,
-                        'value' => $key,
+                        'label' => \Wordery\TypeCodes\Languages::ISO632T(array_get($element, 'key', '')),
+                        'value' => array_get($element, 'key', ''),
                         'count' => array_get($element, 'doc_count', 0)
                     ];
                 })->filter(function ($option) use ($clicked) {
@@ -254,8 +312,8 @@ return [
                 })->values()->toArray();
 
                 return [
-                    'title'        => 'Publication Date',
-                    'name'         => 'publicationDate',
+                    'title'        => 'Languages',
+                    'name'         => 'languages',
                     'vanityLabels' => null,
                     'values'       => $clicked,
                     'options'      => $options,
@@ -264,16 +322,9 @@ return [
             }
         ],
         [
-            'title' => 'formats',
-            'field' => 'formatGroup.exact_matches_ci'
-        ],
-        [
-            'title' => 'languages',
-            'field' => 'languages'
-        ],
-        [
             'title' => 'series',
-            'field' => 'series.exact_matches_ci'
+            'field' => 'series.exact_matches_ci',
+            'type' => 'check'
         ],
         [
             'title' => 'publisher',

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule,
     App\Rules\Utf8;
 
@@ -55,12 +56,21 @@ class SearchTerms extends FormRequest
         return $key;
     }
 
+    public function add($key, $value)
+    {
+        $input = $this->input();
+        $input[$key] = $value;
+
+        $this->replace($input);
+    }
+
     /**
      * @return void
      */
     protected function prepareForValidation()
     {
         if (! empty($input = $this->input())) {
+            // TODO: this does not seem to be getting through, and very fecking uncertain about this being injected here.
             switch (true) {
                 case isset($input['term']) && is_string($input['term']) && strlen($input['term']) > 1 && (strpos($input['term'], ':') !== false):
                     /**
@@ -83,6 +93,12 @@ class SearchTerms extends FormRequest
 
             $input = collect($input)->flatMap(function($value, $key) {
                 return [$this->translate($key) => $value];
+            })->map(function ($input, $key) {
+                    if (in_array($key, ['contributors', 'publisher', 'formats', 'interestAge', 'formatGroup']) && is_string($input)) {
+                        return [$input];
+                    }
+
+                    return $input;
             })->toArray();
 
             $this->replace($input);
@@ -92,27 +108,10 @@ class SearchTerms extends FormRequest
     public function messages()
     {
         return [
-            'term.string' => 'When term is provided, it must be a string.',
-            'id.string' => 'When id is provided, it must be a string.',
-            'ids.array' => 'When ids are provided, it must be an array.',
-            'ids.integer' => 'Ids provided must be an array of integers.',
-            'contributors.string' => 'When author/contributors is provided, it must be a string.',
-            'publisher.string' => 'When publisher is provided, it must be a string.',
-            'rank.numeric'  => 'When rank is provided, it must be numeric.',
-            'rank.min' => 'Rank must be a positive integer or zero.',
-            'rank.max' => 'Rank must be an integer, not exceeding 5',
-            'interestAge.string' => 'When age group is provided, it must be a string.',
-            'formats.string' => 'When format is provided, it must be a string.',
-            'languages.string' => 'When language is provided, it must be a string.',
-            'country,string' => 'When country is provided, it must be a string.',
-            'series' => 'When series is provided, it must be a string.',
-            'recent.boolean' => 'When recent is provided, it must be boolean.',
-            'resultsPerPage.numeric' => 'Results per page must be numeric',
-            'resultsPerPage.min' => 'Results per page must be a positive integer or zero.',
-            'page.integer' => 'Page must be an integer.',
-            'page.min' => 'Results per page must be a positive integer or zero.',
-            'page.max:200' => 'Page must be an integer, and not exceed 200',
-            'publicationDate.in' => 'Publication date must be either [Over a year ago, Within the last year, Within the last 3 months, Within the last month, Coming soon]'
+            'string' => "When :attribute is provided then it must be a string.",
+            'array' => "When :attribute is provided then it must be an array.",
+            'required' => ":attribute is required",
+            'numeric' => "When :attribute is provided then it must be numeric."
         ];
     }
 
@@ -123,16 +122,18 @@ class SearchTerms extends FormRequest
      */
     public function rules()
     {
+        // TODO: formatGroup, how to deal with that.
         return [
             'term'            => ['sometimes', 'nullable', 'string', new Utf8()],
             'id'              => 'sometimes|string',
             'ids'             => 'sometimes|array',
             'ids.*'           => 'sometimes|integer',
-            'contributors'    => 'sometimes|required|string',
-            'publisher'       => 'sometimes|required|string',
+            'contributors'    => 'sometimes|required|array',
+            'publisher'       => 'sometimes|required|array',
             'rank'            => 'sometimes|required|numeric|min:0|max:5',
-            'interestAge'     => 'sometimes|required|string',
-            'formats'         => 'sometimes|required|string',
+            'interestAge'     => 'sometimes|required|array',
+            'formats'         => 'sometimes|required|array',
+            'formatGroup'     => 'sometimes|required|array',
             'languages'       => 'sometimes|required|string',
             'country'         => 'sometimes|required|string',
             'series'          => 'sometimes|required|string',
