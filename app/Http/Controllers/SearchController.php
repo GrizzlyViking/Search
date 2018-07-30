@@ -34,9 +34,9 @@ class SearchController extends Controller
         return $book
             ->addFilter(Filter::create('must_not', ['terms' => [ 'salesExclusions' => [strtoupper($countryCode)]]])->queryFilter())
             ->withFacets()
-            //->getQuery();
-            ->search()
-            ->all();
+            ->getQuery();
+            //->search()
+            //->all();
     }
 
     /**

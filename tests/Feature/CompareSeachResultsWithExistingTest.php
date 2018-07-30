@@ -52,8 +52,56 @@ class CompareSeachResultsWithExistingTest extends TestCase
         }
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
+        $response = $bookSearch->withFacets()->search()->getIsbns();
 
-        die($bookSearch->withFacets()->getQuery()->toJson(128));
+        $this->assertEquals([9780439358071, 9780439064873], $response->toArray());
+
+        $query = $bookSearch->getQuery();
+
+        $this->assertTrue(is_array($query_section = $query->get('query', false)), 'Query not found');
+        $this->assertTrue(is_array($filters = $query->get('post_filter', false)), 'Post filter not found');
+        $this->assertTrue(is_array($aggregations = $query->get('aggregations', false)), 'aggregation not found');
+
+        $this->assertEquals('harry Potter',
+            array_get($query_section, 'function_score.query.bool.must.0.multi_match.query'),
+            "term not allocated correctly.");
+        $this->assertEquals(['GB'],array_get($query_section, 'function_score.query.bool.filter.bool.must_not.terms.salesExclusions'));
+
+        $contributors = collect(array_get($filters, 'bool.must'))->first(function ($element) {
+            return array_has($element, 'match_phrase.contributors');
+        });
+        $this->assertEquals('j k rowling', array_get($contributors, 'match_phrase.contributors'));
+
+        $publisher = collect(array_get($filters, 'bool.must'))->first(function ($element) {
+            return array_has($element, 'match_phrase.publisher');
+        });
+        $this->assertEquals('scholastic us', array_get($publisher, 'match_phrase.publisher'));
+
+        $format = collect(array_get($filters, 'bool.must'))->first(function ($element) {
+            return array_has($element, 'match.formatGroup');
+        });
+        $ageGroups = collect(array_get($filters, 'bool.must'))->first(function ($element) {
+            return array_has($element, 'bool.should');
+        });
+        $this->assertEquals('paperback', array_get($format, 'match.formatGroup'));
+
+
+        $ageGroups = collect(array_get($ageGroups, 'bool.should'));
+        $this->assertEquals(2, $ageGroups->count());
+        $this->assertTrue($ageGroups->filter(function($ageRange){
+            return array_get($ageRange, 'range.interestAge.gte') == 6;
+        })->isNotEmpty());
+        $this->assertTrue($ageGroups->filter(function($ageRange){
+            return array_get($ageRange, 'range.interestAge.lt') == 8;
+        })->isNotEmpty());
+        $this->assertTrue($ageGroups->filter(function($ageRange){
+            return array_get($ageRange, 'range.interestAge.gte') ==13;
+        })->isNotEmpty());
+
+        $this->assertEquals(count(config('search.aggregations')), count($aggregations));
+
+        $this->assertEquals(array_get($aggregations, 'Express Delivery.filter.bool.must'), array_get($filters, 'bool.must'));
+
 
 
     }
