@@ -101,8 +101,45 @@ class CompareSeachResultsWithExistingTest extends TestCase
         $this->assertEquals(count(config('search.aggregations')), count($aggregations));
 
         $this->assertEquals(array_get($aggregations, 'Express Delivery.filter.bool.must'), array_get($filters, 'bool.must'));
+    }
 
+    /** @test */
+    public function compare_fiction_with_several_elements_within_same_facet_ticked()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | compare
+        |--------------------------------------------------------------------------
+        |
+        | fiction?viewBy=grid&resultsPerPage=10&page=1&contributors[]=ian%20fleming&contributors[]=joe%20berger&interestAge[]=6-8%20years&interestAge[]=9-12%20years&publicationDate=Within%20the%20last%20year&series[]=macmillan%20children%27s%20classics&publisher[]=pan%20macmillan
+        |
+        |
+        |
+        */
 
+        $parameters = $this->app->make(SearchTerms::class);
 
+        $parameters->replace([
+            'viewBy'          => 'grid',
+            'resultsPerPage'  => 10,
+            'page'            => 1,
+            'contributors'    => ['ian fleming', 'joe berger'],
+            'interestAge'     => ['6-9 years', '9-12 years'],
+            'publisher'       => ['pan macmillan'],
+            'publicationDate' => 'Within the last year',
+            'series'          => ["macmillan children's classics"],
+            'country'         => 'GB'
+        ]);
+
+        try {
+            $parameters->validateResolved();
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+
+        $bookSearch = new Book(new QueryBuilder(), $parameters);
+        $query = $bookSearch->withFacets()->getQuery();
+
+        dd($query->toJson());
     }
 }
