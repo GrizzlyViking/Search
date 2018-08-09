@@ -67,6 +67,7 @@ class Blog implements SearchInterface
      */
     protected function buildSearch($terms): Blog
     {
+
         /** @var \GrizzlyViking\QueryBuilder\Leaf\Query $leaf */
         $leaf = Query::create($terms->toArray());
         $leaf->setBoolean('must');
