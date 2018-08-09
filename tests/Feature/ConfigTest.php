@@ -70,4 +70,19 @@ class ConfigTest extends TestCase
             ]
         ]],$response, 'two age ranges for interest group didn\'t output expected response.');
     }
+
+    public function test_callback_for_publishedDate_pre_query()
+    {
+        $callback = config('search.filter_callbacks.publicationDate');
+        $response = $callback('Within the last year');
+
+        $this->assertEquals([
+            "range" => [
+                "publicationDate" => [
+                    "lte" => "2018-08-06",
+                    "gte" => "2017-08-06"
+                ]
+            ]
+        ], $response, 'Publication date, Within the last year, does not produce the correct response.');
+    }
 }

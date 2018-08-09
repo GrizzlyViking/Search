@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule,
     App\Rules\Utf8;
@@ -136,7 +137,7 @@ class SearchTerms extends FormRequest
             'formatGroup'     => 'sometimes|required|array',
             'languages'       => 'sometimes|required|string',
             'country'         => 'sometimes|required|string',
-            'series'          => 'sometimes|required|string',
+            'series'          => 'sometimes|required|array',
             self::CATEGORIES  => 'sometimes|required|string',
             'match'           => [
                 'sometimes',

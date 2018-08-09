@@ -8,6 +8,7 @@ use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Query;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Illuminate\Http\Request;
+use Wordery\TypeCodes\Categories;
 
 class SearchController extends Controller
 {
@@ -50,10 +51,13 @@ class SearchController extends Controller
         return $book->search()->getIsbns();
     }
 
-    public function category(Book $book, $category)
+    public function category(Book $book, string $countryCode, string $category)
     {
-        $book->setMust([SearchTerms::CATEGORIES => $category]);
-        return $book->withFacets()->getQuery();//->search()->all();
+        return $book
+            ->addFilter(Filter::create('must', ['term' => [SearchTerms::CATEGORIES => Categories::getCodeFromCategoryName(ucwords(strtolower($category)))]])->queryFilter())
+            ->addFilter(Filter::create('must_not', ['terms' => [ 'salesExclusions' => [strtoupper($countryCode)]]])->queryFilter())
+            ->withFacets()
+            ->getQuery();
     }
 
     public function publisher(Book $book, $publisher)

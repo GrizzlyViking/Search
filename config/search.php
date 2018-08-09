@@ -119,9 +119,21 @@ return [
         'series',
         'languages',
         'contributors',
+        'publicationDate',
         'interestAge',
         'tagIds',
         'rating',
+        'formats',
+        'formatGroup',
+        'websiteCategoryCodes'
+    ],
+
+    'should_filters' => [
+        'publisher',
+        'series',
+        'languages',
+        'contributors',
+        'interestAge',
         'formats',
         'formatGroup',
         'websiteCategoryCodes'
@@ -194,7 +206,19 @@ return [
                 })->toArray()];
             }
         }
+        },
+        'publicationDate' => function($phrase) {
+            $options = [
+                'Coming soon' => ['lte' => date_create('9 months')->format('Y-m-d'), 'gte' => date_create('now')->format('Y-m-d') ],
+                'Within the last month' => ['lte' => date_create('now')->format('Y-m-d'), 'gte' => date_create('-1 month')->format('Y-m-d') ],
+                'Within the last 3 months' => ['lte' => date_create('now')->format('Y-m-d'), 'gte' => date_create('-3 month')->format('Y-m-d') ],
+                'Within the last year' => ['lte' => date_create('now')->format('Y-m-d'), 'gte' => date_create('-1 year')->format('Y-m-d') ],
+                'Over a year ago' => ['lte' => date_create('-1 year')->format('Y-m-d')]
+            ];
 
+            if (!isset(array_change_key_case($options, CASE_LOWER)[strtolower($phrase)])) return false;
+
+            return ["range" => [ "publicationDate" => array_change_key_case($options, CASE_LOWER)[strtolower($phrase)]]];
         },
         'forSale' => function($forSale = 1){
             return ['term' => ['forSale' => $forSale]];

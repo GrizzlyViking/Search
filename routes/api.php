@@ -16,14 +16,16 @@ use Illuminate\Http\Request;
 Route::middleware('api')->group(function() {
     Route::post('{countyCode}/books', 'SearchController@index');
     Route::get('{countyCode}/books', 'SearchController@index');
-    Route::match(['GET', 'POST'], 'category/{category}', 'SearchController@category');
+    Route::get( '{countryCode}/category/{category}', 'SearchController@category');
     Route::match(['GET', 'POST'], 'author/{author}', 'SearchController@author');
     Route::match(['GET', 'POST'], 'publisher/{publisher}', 'SearchController@publisher');
     Route::match(['GET', 'POST'], 'series/{series}', 'SearchController@series');
 
     Route::match(['GET', 'POST'], 'blog', 'BlogController@index');
+    Route::get('testParameters', 'SearchController@testParameters');
 
     Route::match(['POST', 'GET', 'PUT'], 'errors', ['as' => 'errors', 'uses' => function(){
+
         return view('errors');
     }]);
 });

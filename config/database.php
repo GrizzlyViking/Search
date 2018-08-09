@@ -47,6 +47,14 @@ return [
             'username' => env('MONGODB_USERNAME'),
             'password' => env('MONGODB_PASSWORD')
         ],
+        'catalogue'            => [
+            'driver'   => 'mongodb',
+            'host'     => env('MONGODB_HOST', 'localhost'),
+            'port'     => env('MONGODB_PORT', 27017),
+            'database' => 'catalogue',
+            'username' => env('MONGODB_USERNAME'),
+            'password' => env('MONGODB_PASSWORD')
+        ],
 
     ],
 

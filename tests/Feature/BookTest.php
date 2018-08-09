@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Api\Search\Book;
 use App\Http\Requests\SearchTerms;
+use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Tests\TestCase;
+use Wordery\TypeCodes\Categories;
 
 class BookTest extends TestCase
 {
@@ -164,5 +166,20 @@ class BookTest extends TestCase
         ], array_get($query, 'aggregations.Express Delivery.filter.bool.must'));
 
         $this->assertTrue(true);
+    }
+
+    /** @test */
+    public function add_query_filters_and_no_term_shouldnt_be_match_all()
+    {
+        /** @var Book $book */
+        $book = app(Book::class);
+
+        $query = $book
+            ->addFilter(Filter::create('must', ['term' => [SearchTerms::CATEGORIES => Categories::getCodeFromCategoryName('Fiction')]])->queryFilter())
+            ->addFilter(Filter::create('must_not', ['terms' => [ 'salesExclusions' => ['GB']]])->queryFilter())
+            ->withFacets()
+            ->getQuery();
+
+        $this->assertNotEquals(['match_all' => (object)[]], $query->get('query'));
     }
 }

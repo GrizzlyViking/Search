@@ -147,6 +147,8 @@ class Book implements SearchInterface
         $query->setBoolean('must');
         $branch = Queries::create($query);
         $this->builder->setQueries($branch);
+
+        return $this;
     }
 
     /**
@@ -414,8 +416,11 @@ class Book implements SearchInterface
             $filter = $callback($filter);
 
             $filter = Filter::create($filter);
+        } elseif (in_array($key, config('search.should_filters')) && is_array($filter) && count($filter) >= 2) {
+            $filter = Filter::create(['should' => collect($filter)->map(function($filter) use ($key) {
+                return [$key => $filter];
+            } )->toArray()]);
         } else {
-
             $filter = Filter::create([$key => $filter]);
         }
 
