@@ -67,7 +67,7 @@ class BookTest extends TestCase
         $post_filter = collect(array_get($bookSearch->getQuery(), 'post_filter.bool.must'));
 
         $this->assertTrue($post_filter->contains('match', ["formats" => "paperback"]), 'post filters does not contain formats => paperback, and should.');
-        $this->assertTrue($post_filter->contains('match_phrase', ["contributors" => "J K Rawlings"]), 'post filters does not contain contributors => J K Rawlings, and should.');
+        $this->assertTrue($post_filter->contains('term', ["contributors.exact_matches_ci" => "J K Rawlings"]), 'post filters does not contain contributors.exact_matches_ci => J K Rawlings, and should.');
         $this->assertTrue($post_filter->contains('match', ["publisher" => "someone"]), 'post filters does not contain publisher => someone, and should.');
         $this->assertTrue($post_filter->contains('match', ["websiteCategoryCodes" => "Y"]), 'post filters does not contain websiteCategoryCodes => Y, and should. "categories" should be translated in the request to "websiteCategoryCodes"');
 
@@ -160,7 +160,7 @@ class BookTest extends TestCase
         // Check that contributor is j.k. rowling
         // check the filter on the aggregate filter, in this example I'm checking the Express Delivery filter
         $this->assertEquals([
-            ["match_phrase" => ["contributors" => "j k rowlings"]],
+            ["term" => ["contributors.exact_matches_ci" => "j. k. rowlings"]],
             ["range" => ["interestAge" => ["gte" => "9","lt" => "12"]]],
             ["match" => ["languages" => "eng"]]
         ], array_get($query, 'aggregations.Express Delivery.filter.bool.must'));

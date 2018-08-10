@@ -68,9 +68,15 @@ class CompareSeachResultsWithExistingTest extends TestCase
         $this->assertEquals(['GB'],array_get($query_section, 'function_score.query.bool.filter.bool.must_not.terms.salesExclusions'));
 
         $contributors = collect(array_get($filters, 'bool.must'))->first(function ($element) {
-            return array_has($element, 'match_phrase.contributors');
+
+
+            if (!($found = array_get($element, 'term', false))) {
+                return false;
+            }
+
+            return isset($found['contributors.exact_matches_ci']);
         });
-        $this->assertEquals('j k rowling', array_get($contributors, 'match_phrase.contributors'));
+        $this->assertEquals(['contributors.exact_matches_ci' => 'j. k. rowling'], array_get($contributors, 'term'));
 
         $publisher = collect(array_get($filters, 'bool.must'))->first(function ($element) {
             return array_has($element, 'match_phrase.publisher');
@@ -138,8 +144,8 @@ class CompareSeachResultsWithExistingTest extends TestCase
         }
 
         $bookSearch = new Book(new QueryBuilder(), $parameters);
-        $query = $bookSearch->withFacets()->getQuery();
+        $response = $bookSearch->search()->getIsbns();
 
-        dd($query->toJson());
+        $this->assertEquals([9781509829712], $response->toArray());
     }
 }

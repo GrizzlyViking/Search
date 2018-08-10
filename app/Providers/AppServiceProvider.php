@@ -43,7 +43,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(BookSearch::class, function ($app) { /** @var \Illuminate\Foundation\Application $app */
             /** @var QueryBuilder $build */
             $build = $app->make(QueryBuilder::class);
-            $build->setFilters(Filter::create(['term' => ['forSale' => 1]])->queryFilter());
 
             $search = new BookSearch(
                 $build,

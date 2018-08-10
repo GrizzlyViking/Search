@@ -22,6 +22,7 @@ use GrizzlyViking\QueryBuilder\ResponseInterface;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use GrizzlyViking\QueryBuilder\Response;
+use Wordery\TypeCodes\Categories;
 
 /*
 |--------------------------------------------------------------------------
@@ -227,9 +228,12 @@ class Book implements SearchInterface
      */
     public function buildSearch(FormRequest $terms): SearchInterface
     {
-        $this->terms = collect($terms->validated());
+        $this->terms = collect($terms->translated());
 
         $this->terms->only(config('search.term'))->each(function ($term) {
+            if (isset($term[config('search.term')])) {
+                $term = $term[config('search.term')];
+            }
             $this->buildQuery($term);
         });
 
@@ -252,6 +256,9 @@ class Book implements SearchInterface
         $this->terms->only([config('search.orderBy'), config('search.pagination.resultsPerPageKey'), config('search.pagination.pageKey')])->each(function($option, $key) {
             switch ($key) {
                 case config('search.orderBy'):
+                    if (isset($option[config('search.orderBy')])) {
+                        $option = $option[config('search.orderBy')];
+                    }
                     $this->builder->setSort($option);
                     break;
                 case config('search.pagination.pageKey'):
@@ -262,10 +269,20 @@ class Book implements SearchInterface
                         $size = config('search.pagination.resultsPerPageDefault');
                     }
 
+                    if (is_array($size)) {
+                        $size = reset($size);
+                    }
+
                     if ($this->terms->has(config('search.pagination.pageKey'))) {
                         // x = page 3 * 30 results per page 90
 
-                        $from = ($size * ($this->terms->get(config('search.pagination.pageKey'), 1) - 1));
+                        $page_number = $this->terms->get(config('search.pagination.pageKey'), 1);
+
+                        if (is_array($page_number)) {
+                            $page_number = reset($page_number);
+                        }
+
+                        $from = ($size * ($page_number - 1));
                     }
 
                     $this->builder->setSize($size, $from);
@@ -410,19 +427,8 @@ class Book implements SearchInterface
      */
     private function buildFilter($filter, $key, $attachPoint = 'post_filter'): \GrizzlyViking\QueryBuilder\Leaf\Filter
     {
-        // Applies callbacks intended for the query prior to execution.
-        if ($callback = config('search.filter_callbacks.' . $key, false)) {
 
-            $filter = $callback($filter);
-
-            $filter = Filter::create($filter);
-        } elseif (in_array($key, config('search.should_filters')) && is_array($filter) && count($filter) >= 2) {
-            $filter = Filter::create(['should' => collect($filter)->map(function($filter) use ($key) {
-                return [$key => $filter];
-            } )->toArray()]);
-        } else {
-            $filter = Filter::create([$key => $filter]);
-        }
+        $filter = Filter::create($filter);
 
         if (!in_array($attachPoint, ['query_filter','filter', 'post_filter'])) {
             throw new \InvalidArgumentException('Attachpoint for buildFilter invalid');
@@ -442,6 +448,60 @@ class Book implements SearchInterface
     public function addFilter($filter)
     {
         $this->builder->setFilters($filter);
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function onlyAvailable()
+    {
+        $this->addFilter(Filter::create(['term' => ['forSale' => 1]])->queryFilter());
+
+        return $this;
+    }
+
+    /**
+     * @param string $countryCode
+     * @return Book
+     */
+    public function country(string $countryCode)
+    {
+        $this->addFilter(Filter::create('must_not', ['terms' => [ 'salesExclusions' => [strtoupper($countryCode)]]])->queryFilter());
+
+        return $this;
+    }
+
+    /**
+     * @param string $category
+     * @return Book
+     */
+    public function category(string $category)
+    {
+        $this->addFilter(Filter::create('must', ['term' => [SearchTerms::CATEGORIES => Categories::getCodeFromCategoryName(ucwords(strtolower($category)))]])->queryFilter());
+
+        return $this;
+    }
+
+    /**
+     * @param string $category
+     * @return Book
+     */
+    public function publisher(string $publisher)
+    {
+        $this->addFilter(Filter::create('must', ['match_phrase' => ['publisher' => $publisher]])->queryFilter());
+
+        return $this;
+    }
+
+    /**
+     * @param string $series
+     * @return Book
+     */
+    public function series(string $series)
+    {
+        $this->addFilter(Filter::create('must', ['series' => $series])->queryFilter());
 
         return $this;
     }

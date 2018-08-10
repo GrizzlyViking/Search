@@ -166,4 +166,116 @@ class SearchTerms extends FormRequest
             ]
         ];
     }
+
+    /**
+     * @return Collection
+     */
+    public function translated(): Collection
+    {
+        return collect($this->toArray())->flatMap(function ($value, $key) {
+            switch ($key) {
+                case 'contributors':
+                    if (count($value) >1) {
+
+                        return [$key => ['should' => collect($value)->map(function($value) use ($key) {
+                            return ['term' => [$key . '.exact_matches_ci' => $value]];
+                        })->toArray()]];
+
+                    } else {
+                        return [$key => ['term' => [$key . '.exact_matches_ci' => $value]]];
+
+                    }
+                    break;
+                case 'interestAge':
+                    if (!is_array($value)) {
+                        $value = [$value];
+                    }
+
+                    $age_groups = collect($value)->map(function ($value) {
+                        switch (strtolower($value)) {
+                            case 'babies':
+                                return [
+                                    'lte' => 1
+                                ];
+                            case 'toddlers':
+                            case 'toddler':
+                                return [
+                                    'gt'  => 1,
+                                    'lte' => 3
+                                ];
+                            default:
+                                if (preg_match('/(\d+)\-(\d+)/', $value, $matches)) {
+                                    return [
+                                        'gte' => $matches[1],
+                                        'lt'  => $matches[2]
+                                    ];
+                                } elseif (preg_match('/(\d+)\+/', $value, $matches)) {
+                                    return [
+                                        'gte' => $matches[1]
+                                    ];
+                                } else {
+                                    return ['gte' => 0];
+                                }
+                                break;
+                        }
+                    });
+
+                    if ($age_groups->count() == 1) {
+                        return [$key => [
+                            'range' => [
+                                'interestAge' => $age_groups->flatMap(function ($element) {
+                                    return $element;
+                                })->toArray()
+                            ]
+                        ]];
+                    } else {
+                        return [$key => [
+                            'should' => $age_groups->map(function ($element) {
+
+                                return ['range' => ['interestAge' => $element]];
+                            })->toArray()
+                        ]];
+                    }
+
+                    break;
+                case 'publicationDate':
+                    $options = [
+                        'Coming soon'              => [
+                            'lte' => date_create('9 months')->format('Y-m-d'),
+                            'gte' => date_create('now')->format('Y-m-d')
+                        ],
+                        'Within the last month'    => [
+                            'lte' => date_create('now')->format('Y-m-d'),
+                            'gte' => date_create('-1 month')->format('Y-m-d')
+                        ],
+                        'Within the last 3 months' => [
+                            'lte' => date_create('now')->format('Y-m-d'),
+                            'gte' => date_create('-3 month')->format('Y-m-d')
+                        ],
+                        'Within the last year'     => [
+                            'lte' => date_create('now')->format('Y-m-d'),
+                            'gte' => date_create('-1 year')->format('Y-m-d')
+                        ],
+                        'Over a year ago'          => ['lte' => date_create('-1 year')->format('Y-m-d')]
+                    ];
+
+                    if (!isset(array_change_key_case($options, CASE_LOWER)[strtolower($value)])) {
+                        return false;
+                    }
+
+                    return [$key => [
+                        "range" => [
+                            "publicationDate" => array_change_key_case($options, CASE_LOWER)[strtolower($value)]
+                        ]
+                    ]];
+                    break;
+                case 'forSale':
+                    return [$key => ['term' => ['forSale' => $value]]];
+                case 'country':
+                    return [$key => ['must_not' => ['terms' => ['salesExclusions' => [$value]]]]];
+                default:
+                    return [$key => [$key => $value]];
+            }
+        });
+    }
 }
