@@ -65,7 +65,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapApiRoutes()
     {
-        $domain = preg_replace('/(https?:\/\/)(api\.)?(.+)/', "$1api.$3", env('APP_URL'));
+        $domain = preg_replace('/^(https?:\/\/)((.+)?\.)?(.+)\.(.+)$/', '$1$3api.$4.$5', env('APP_URL'));
 
         Route::domain($domain)
              ->middleware('api')

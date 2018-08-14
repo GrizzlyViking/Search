@@ -2135,20 +2135,22 @@
         },
         {
             "name": "psy/psysh",
-            "version": "v0.9.6",
+            "version": "v0.9.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/psysh.git",
-                "reference": "4a2ce86f199d51b6e2524214dc06835e872f4fce"
+                "reference": "4f5b6c090948773a8bfeea6a0f07ab7d0b24e932"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/4a2ce86f199d51b6e2524214dc06835e872f4fce",
-                "reference": "4a2ce86f199d51b6e2524214dc06835e872f4fce",
+                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/4f5b6c090948773a8bfeea6a0f07ab7d0b24e932",
+                "reference": "4f5b6c090948773a8bfeea6a0f07ab7d0b24e932",
                 "shasum": ""
             },
             "require": {
                 "dnoegel/php-xdg-base-dir": "0.1",
+                "ext-json": "*",
+                "ext-tokenizer": "*",
                 "jakub-onderka/php-console-highlighter": "0.3.*",
                 "nikic/php-parser": "~1.3|~2.0|~3.0|~4.0",
                 "php": ">=5.4.0",
@@ -2203,7 +2205,7 @@
                 "interactive",
                 "shell"
             ],
-            "time": "2018-06-10T17:57:20+00:00"
+            "time": "2018-08-11T15:54:43+00:00"
         },
         {
             "name": "ramsey/uuid",
@@ -3426,11 +3428,11 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "git@git.wordery.net:wordery/typeCodes",
-                "reference": "216453394088ecc91d68cdb1789c79c800984d85"
+                "url": "git@git.wordery.net:wordery/typeCodes.git",
+                "reference": "9ec947fce41bb4e12d6f63df88606bb7a7f48a26"
             },
             "require": {
-                "jenssegers/mongodb": "~3.4.0"
+                "jenssegers/mongodb": "^3.3.0"
             },
             "type": "library",
             "autoload": {
@@ -3445,21 +3447,21 @@
                 }
             ],
             "description": "Type Codes used for languages.",
-            "homepage": "https://git.wordery.net/seb/typeCodes",
-            "time": "2018-08-06T10:29:44+00:00"
+            "homepage": "https://git.wordery.net/wordery/typeCodes",
+            "time": "2018-08-13T14:20:24+00:00"
         },
         {
             "name": "zendframework/zend-diactoros",
-            "version": "1.8.4",
+            "version": "1.8.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zendframework/zend-diactoros.git",
-                "reference": "736ffa7c2bfa4a60e8a10acb316fa2ac456c5fba"
+                "reference": "3e4edb822c942f37ade0d09579cfbab11e2fee87"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zend-diactoros/zipball/736ffa7c2bfa4a60e8a10acb316fa2ac456c5fba",
-                "reference": "736ffa7c2bfa4a60e8a10acb316fa2ac456c5fba",
+                "url": "https://api.github.com/repos/zendframework/zend-diactoros/zipball/3e4edb822c942f37ade0d09579cfbab11e2fee87",
+                "reference": "3e4edb822c942f37ade0d09579cfbab11e2fee87",
                 "shasum": ""
             },
             "require": {
@@ -3509,7 +3511,7 @@
                 "psr",
                 "psr-7"
             ],
-            "time": "2018-08-01T13:47:49+00:00"
+            "time": "2018-08-10T14:16:32+00:00"
         }
     ],
     "packages-dev": [
@@ -5319,11 +5321,11 @@
         },
         {
             "name": "wordery/utilities",
-            "version": "1.1.3",
+            "version": "1.1.4",
             "source": {
                 "type": "git",
-                "url": "git@git.wordery.net:wordery/utilitiesPkg",
-                "reference": "ecdf87a9451f510cad7d4d9131fda27325e0122a"
+                "url": "git@git.wordery.net:wordery/utilitiesPkg.git",
+                "reference": "90ed395f6bdd66bd8a94e4e83b7fe97ba157de2c"
             },
             "require": {
                 "elasticsearch/elasticsearch": ">=5.3",
@@ -5344,12 +5346,12 @@
                 }
             ],
             "description": "Small tools to help development for .com",
-            "homepage": "https://git.wordery.net/seb/utilitiesPkg",
+            "homepage": "https://git.wordery.net/wordery/utilitiesPkg",
             "keywords": [
                 "utilities",
                 "wordery"
             ],
-            "time": "2018-06-07T14:42:26+00:00"
+            "time": "2018-08-13T14:26:02+00:00"
         }
     ],
     "aliases": [],
