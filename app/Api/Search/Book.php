@@ -21,7 +21,7 @@ use App\Http\Requests\SearchTerms;
 use GrizzlyViking\QueryBuilder\ResponseInterface;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
-use GrizzlyViking\QueryBuilder\Response;
+use App\Api\Search\Response\Book as Response;
 use Wordery\TypeCodes\Categories;
 
 /*

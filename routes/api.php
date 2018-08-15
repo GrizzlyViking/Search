@@ -17,6 +17,7 @@ Route::middleware('api')->group(function() {
     Route::post('{countyCode}/books', 'SearchController@index');
     Route::get('{countyCode}/books', 'SearchController@index');
     Route::get( '{countryCode}/category/{category}', 'SearchController@category');
+    Route::post( '{countryCode}/category/{category}', 'SearchController@category');
     Route::match(['GET', 'POST'], 'author/{author}', 'SearchController@author');
     Route::match(['GET', 'POST'], 'publisher/{publisher}', 'SearchController@publisher');
     Route::match(['GET', 'POST'], 'series/{series}', 'SearchController@series');

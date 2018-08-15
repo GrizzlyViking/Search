@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Api\Search\Book;
 use App\Http\Requests\SearchTerms;
+use App\Models\WebsiteCategory;
 use GrizzlyViking\QueryBuilder\Leaf\Factories\Filter;
 use GrizzlyViking\QueryBuilder\QueryBuilder;
 use Tests\TestCase;
@@ -181,5 +182,26 @@ class BookTest extends TestCase
             ->getQuery();
 
         $this->assertNotEquals(['match_all' => (object)[]], $query->get('query'));
+    }
+
+    /** @test */
+    public function set_up_the_category_aggregation()
+    {
+        /** @var WebsiteCategory $category */
+        $category = WebsiteCategory::find('F');
+
+        $field = SearchTerms::CATEGORIES;
+        /** @var \Illuminate\Database\Eloquent\Collection $children */
+        $children = $category->children()->get()->flatMap(function(\App\Models\WebsiteCategory $child) use ($field) {
+            return [$child->_id => ['term' => [$field => $child->_id]]];
+        });
+
+        $aggregation = new \GrizzlyViking\QueryBuilder\Leaf\Aggregation();
+        $aggregation->setTitle('Categories');
+        $aggregation->setType('filters');
+        //$aggregation->setField($field);
+        $aggregation->setBucketFilters(['filters' => $children->toArray()]);
+
+        $this->assertTrue(true);
     }
 }

@@ -289,6 +289,50 @@ return [
                 ['key' => '4 stars', 'from' => 3.5],
                 ['key' => '5 stars', 'from' => 4.5]
             ]
+        ],
+        [
+            'title' => 'Categories',
+            'field' => 'websiteCategoryCodes',
+            'filters' => function () {
+
+                $request = app(SearchTerms::class);
+                $field = SearchTerms::CATEGORIES;
+                $code = false;
+                if ($category = $request->route('category')) {
+                    $code = \Wordery\TypeCodes\Categories::getCode($category);
+                } elseif ($request->has($field)) {
+                    $code = $request->get($field, false);
+                }
+
+                if ($code) {
+                    $current_category = \App\Models\WebsiteCategory::find($code);
+                    $children = $current_category->children()->get()->flatMap(function(\App\Models\WebsiteCategory $child) use ($field) {
+                        return [$child->_id => ['term' => [$field => $child->_id]]];
+                    });
+                } else {
+                    $children = \App\Models\WebsiteCategory::whereNull('parentCode')->get()->flatMap(function(\App\Models\WebsiteCategory $child) use ($field) {
+                        return [$child->_id => ['term' => [$field => $child->_id]]];
+                    });
+                }
+
+                return ['filters' => $children->toArray()];
+            },
+            'callback' => function ($aggregationKey, $aggregations) {
+
+                return collect($aggregations)->multiDimensionalGet('buckets')->filter(function($element){
+                    return isset($element['doc_count']) ? $element['doc_count'] > 0 : false;
+                })->map(function ($element, $key) {
+                    $category = \App\Models\WebsiteCategory::find($key);
+                    return [
+                        'code' => $key,
+                        'count' => isset($element['doc_count']) ? $element['doc_count'] : 0,
+                        'hasChildren' => $category->children()->get()->isNotEmpty(),
+                        'href' => \Wordery\TypeCodes\Categories::getRoute($key)->first(),
+                        'title' => $category->heading
+                    ];
+                });
+
+            }
         ]
     ],
 
