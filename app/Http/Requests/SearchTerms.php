@@ -27,6 +27,7 @@ class SearchTerms extends FormRequest
         'categories'       => self::CATEGORIES,
         'category'         => self::CATEGORIES,
         'mainCategory'     => self::CATEGORIES,
+        'code'             => self::CATEGORIES,
         'language'         => 'languages',
         'author'           => 'contributors',
         'contributor'      => 'contributors',
