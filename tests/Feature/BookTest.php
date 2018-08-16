@@ -187,21 +187,50 @@ class BookTest extends TestCase
     /** @test */
     public function set_up_the_category_aggregation()
     {
-        /** @var WebsiteCategory $category */
-        $category = WebsiteCategory::find('F');
-
         $field = SearchTerms::CATEGORIES;
+        /** @var WebsiteCategory $category */
+        $category = WebsiteCategory::find($presentCategoryCode = 'FX');
+
+        $ancestry = $category->ancestry()->flatMap(function($code) use ($field) {
+            return [$code => ['term' => [$field => $code]]];
+        });
+
         /** @var \Illuminate\Database\Eloquent\Collection $children */
         $children = $category->children()->get()->flatMap(function(\App\Models\WebsiteCategory $child) use ($field) {
             return [$child->_id => ['term' => [$field => $child->_id]]];
         });
 
-        $aggregation = new \GrizzlyViking\QueryBuilder\Leaf\Aggregation();
-        $aggregation->setTitle('Categories');
-        $aggregation->setType('filters');
-        //$aggregation->setField($field);
-        $aggregation->setBucketFilters(['filters' => $children->toArray()]);
-
-        $this->assertTrue(true);
+        $this->assertEquals([
+            "F"   => [
+                "term" => [
+                    "websiteCategoryCodes" => "F"
+                ]
+            ],
+            "FXA" => [
+                "term" => [
+                    "websiteCategoryCodes" => "FXA"
+                ]
+            ],
+            "FXS" => [
+                "term" => [
+                    "websiteCategoryCodes" => "FXS"
+                ]
+            ],
+            "FXL" => [
+                "term" => [
+                    "websiteCategoryCodes" => "FXL"
+                ]
+            ],
+            "FZG" => [
+                "term" => [
+                    "websiteCategoryCodes" => "FZG"
+                ]
+            ],
+            "FXZ" => [
+                "term" => [
+                    "websiteCategoryCodes" => "FXZ"
+                ]
+            ]
+        ], $ancestry->merge($children)->toArray());
     }
 }

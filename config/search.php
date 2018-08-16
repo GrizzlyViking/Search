@@ -306,16 +306,25 @@ return [
 
                 if ($code) {
                     $current_category = \App\Models\WebsiteCategory::find($code);
+                }
+
+                if (!empty($current_category->parentCode)) {
+                    $ancestry = $current_category->ancestry()->flatMap(function($code) use ($field) {
+                        return [$code => ['term' => [$field => $code]]];
+                    });
+
                     $children = $current_category->children()->get()->flatMap(function(\App\Models\WebsiteCategory $child) use ($field) {
                         return [$child->_id => ['term' => [$field => $child->_id]]];
                     });
+
+                    $children = $ancestry->merge($children);
                 } else {
                     $children = \App\Models\WebsiteCategory::whereNull('parentCode')->get()->flatMap(function(\App\Models\WebsiteCategory $child) use ($field) {
                         return [$child->_id => ['term' => [$field => $child->_id]]];
                     });
                 }
 
-                return ['filters' => $children->toArray()];
+                return ['filters' => $children->merge([$code => ['term' => [$field => $code]]])->toArray()];
             },
             'callback' => function ($aggregationKey, $aggregations) {
 

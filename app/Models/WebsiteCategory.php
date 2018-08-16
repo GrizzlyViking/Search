@@ -42,4 +42,25 @@ class WebsiteCategory extends Eloquent
     {
         return $this->hasMany(WebsiteCategory::class, 'parentCode');
     }
+
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    public function ancestry()
+    {
+        $parentCode = $this->parentCode;
+        $self = clone $this;
+
+        while($parentCode) {
+            if ($self->parentCode) {
+                $ancestry[] = $parentCode = $self->parentCode;
+
+                $self = $this->find($parentCode);
+            } else {
+                $parentCode = false;
+            }
+        }
+
+        return collect($ancestry)->reverse()->values();
+    }
 }
